@@ -10,7 +10,8 @@ import {
   ChevronRight, 
   Send 
 } from 'lucide-react';
-import { GlassCard } from './GlassCard';
+import { GlassCard } from '../ui/GlassCard';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 export const FloatingActionMenu = () => {
   const { addTask, addGoal, addNote, notes, deleteNote } = useDashboard();
@@ -26,6 +27,7 @@ export const FloatingActionMenu = () => {
   const [goalTarget, setGoalTarget] = useState('100%');
   
   const [noteText, setNoteText] = useState('');
+  const [noteToDelete, setNoteToDelete] = useState(null);
 
   // Expand menu toggle
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -34,7 +36,7 @@ export const FloatingActionMenu = () => {
   const handleTaskSubmit = (e) => {
     e.preventDefault();
     if (!taskTitle.trim()) return;
-    addTask(taskTitle, taskPriority, taskDeadline);
+    addTask(taskTitle, taskPriority);
     setTaskTitle('');
     setActiveModal(null);
     setIsOpen(false);
@@ -111,14 +113,14 @@ export const FloatingActionMenu = () => {
                     }}
                     whileHover={{ scale: 1.05, x: -4 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-3 bg-black/85 backdrop-blur-md border border-blue-900/40 rounded-xl px-4 py-2.5 shadow-glass-glow hover:border-blue-500/30 transition-all text-left"
+                    className="flex items-center gap-3 bg-background/90 backdrop-blur-md border border-border rounded-xl px-4 py-2.5 shadow-glass-glow hover:border-border-strong transition-all text-left"
                   >
                     <div className="flex flex-col items-end text-right">
-                      <span className="text-xs font-semibold text-white font-sans">{item.label}</span>
-                      <span className="text-[9px] font-mono text-blue-500/70">{item.desc}</span>
+                      <span className="text-xs font-semibold text-foreground font-sans">{item.label}</span>
+                      <span className="text-[9px] font-mono text-muted">{item.desc}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-blue-950/50 border border-blue-900/30 flex items-center justify-center text-blue-400 group-hover:text-white">
-                      <Icon className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-lg bg-elevated border border-border flex items-center justify-center text-muted group-hover:text-foreground">
+                      <Icon className="w-4 h-4 text-foreground" />
                     </div>
                   </motion.button>
                 );
@@ -130,15 +132,15 @@ export const FloatingActionMenu = () => {
         {/* Master Action Toggle FAB */}
         <motion.button
           onClick={toggleMenu}
-          whileHover={{ scale: 1.08, boxShadow: "0 0 25px rgba(59, 130, 246, 0.4)" }}
+          whileHover={{ scale: 1.08, boxShadow: 'var(--shadow-glass)' }}
           whileTap={{ scale: 0.93 }}
-          className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-950 via-blue-900 to-white/10 border border-blue-900/50 flex items-center justify-center text-white shadow-blue-glow outline-none cursor-pointer"
+          className="w-14 h-14 rounded-full bg-elevated border border-border-strong flex items-center justify-center text-foreground shadow-glass-glow outline-none cursor-pointer"
         >
           <motion.div
             animate={{ rotate: isOpen ? 135 : 0 }}
             transition={{ type: "spring", stiffness: 350, damping: 20 }}
           >
-            <Plus className="w-6 h-6 text-white" strokeWidth="2.5" />
+            <Plus className="w-6 h-6 text-foreground" strokeWidth="2.5" />
           </motion.div>
         </motion.button>
       </div>
@@ -154,7 +156,7 @@ export const FloatingActionMenu = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveModal(null)}
-              className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              className="absolute inset-0 bg-overlay backdrop-blur-md"
             />
 
             {/* Modal Panel Container */}
@@ -165,15 +167,15 @@ export const FloatingActionMenu = () => {
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               className="w-full max-w-md relative z-10"
             >
-              <GlassCard glow={true} className="border-blue-500/20 shadow-blue-glow !p-0">
+              <GlassCard glow={true} className="border-border-strong shadow-glass-glow !p-0">
                 
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-blue-950/40">
+                <div className="flex items-center justify-between p-5 border-b border-border">
                   <div className="flex items-center gap-2">
-                    {activeModal === 'task' && <CheckSquare className="w-4 h-4 text-blue-400" />}
-                    {activeModal === 'goal' && <Target className="w-4 h-4 text-blue-400" />}
-                    {activeModal === 'note' && <FileText className="w-4 h-4 text-blue-400" />}
-                    <h2 className="text-sm font-semibold tracking-wider uppercase text-white font-sans">
+                    {activeModal === 'task' && <CheckSquare className="w-4 h-4 text-muted" />}
+                    {activeModal === 'goal' && <Target className="w-4 h-4 text-muted" />}
+                    {activeModal === 'note' && <FileText className="w-4 h-4 text-muted" />}
+                    <h2 className="text-sm font-semibold tracking-wider uppercase text-foreground font-sans">
                       {activeModal === 'task' && 'New Priority Task'}
                       {activeModal === 'goal' && 'Define Focus Goal'}
                       {activeModal === 'note' && 'Scratch Workspace'}
@@ -181,7 +183,7 @@ export const FloatingActionMenu = () => {
                   </div>
                   <button 
                     onClick={() => setActiveModal(null)}
-                    className="p-1 rounded-lg bg-blue-950/40 border border-blue-900/20 text-blue-200/50 hover:text-white hover:border-blue-900/50 transition-colors"
+                    className="p-1 rounded-lg bg-elevated border border-border text-muted hover:text-foreground hover:border-border-strong transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -191,37 +193,37 @@ export const FloatingActionMenu = () => {
                 {activeModal === 'task' && (
                   <form onSubmit={handleTaskSubmit} className="p-5 flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest">
+                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
                         Task Heading
                       </label>
                       <input
                         type="text"
                         required
                         value={taskTitle}
-                        onChange={(e) => setTaskTaskTitle(e.target.value)}
+                        onChange={(e) => setTaskTitle(e.target.value)}
                         placeholder="e.g. Design Linear Glass Effects"
-                        className="bg-black/60 border border-blue-900/35 rounded-xl px-4 py-2.5 text-xs text-white placeholder-blue-900/50 focus:outline-none focus:border-blue-500/40 transition-colors font-sans w-full"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
                         autoFocus
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest">
+                        <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
                           Priority Matrix
                         </label>
                         <select
                           value={taskPriority}
                           onChange={(e) => setTaskPriority(e.target.value)}
-                          className="bg-black/60 border border-blue-900/35 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 transition-colors font-sans w-full"
+                          className="bg-surface border border-border rounded-xl px-3 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
                         >
-                          <option value="High" className="bg-black text-white">High</option>
-                          <option value="Medium" className="bg-black text-white">Medium</option>
-                          <option value="Low" className="bg-black text-white">Low</option>
+                          <option value="High" className="bg-surface text-foreground">High</option>
+                          <option value="Medium" className="bg-surface text-foreground">Medium</option>
+                          <option value="Low" className="bg-surface text-foreground">Low</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest">
+                        <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
                           Deadline Limit
                         </label>
                         <input
@@ -230,17 +232,17 @@ export const FloatingActionMenu = () => {
                           value={taskDeadline}
                           onChange={(e) => setTaskDeadline(e.target.value)}
                           placeholder="e.g. Today, 5:00 PM"
-                          className="bg-black/60 border border-blue-900/35 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 transition-colors font-sans w-full"
+                          className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
                         />
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="mt-2 w-full py-3 bg-gradient-to-tr from-blue-950 via-blue-900 to-white/10 hover:shadow-blue-glow hover:border-blue-500/40 transition-all border border-blue-900/30 rounded-xl text-xs font-semibold tracking-wider uppercase text-white flex items-center justify-center gap-2 cursor-pointer"
+                      className="mt-2 w-full py-3 bg-elevated border border-border hover:shadow-glass-glow hover:border-border-strong transition-all border border-border rounded-xl text-xs font-semibold tracking-wider uppercase text-foreground flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Commit Task
-                      <ChevronRight className="w-4 h-4 text-blue-400" />
+                      <ChevronRight className="w-4 h-4 text-muted" />
                     </button>
                   </form>
                 )}
@@ -248,7 +250,7 @@ export const FloatingActionMenu = () => {
                 {activeModal === 'goal' && (
                   <form onSubmit={handleGoalSubmit} className="p-5 flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest">
+                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
                         Goal Objective
                       </label>
                       <input
@@ -257,13 +259,13 @@ export const FloatingActionMenu = () => {
                         value={goalTitle}
                         onChange={(e) => setGoalTitle(e.target.value)}
                         placeholder="e.g. Master Framer Motion Physics"
-                        className="bg-black/60 border border-blue-900/35 rounded-xl px-4 py-2.5 text-xs text-white placeholder-blue-900/50 focus:outline-none focus:border-blue-500/40 transition-colors font-sans w-full"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
                         autoFocus
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest">
+                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
                         Target Boundary
                       </label>
                       <input
@@ -272,16 +274,16 @@ export const FloatingActionMenu = () => {
                         value={goalTarget}
                         onChange={(e) => setGoalTarget(e.target.value)}
                         placeholder="e.g. 30 Days or 100%"
-                        className="bg-black/60 border border-blue-900/35 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 transition-colors font-sans w-full"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="mt-2 w-full py-3 bg-gradient-to-tr from-blue-950 via-blue-900 to-white/10 hover:shadow-blue-glow hover:border-blue-500/40 transition-all border border-blue-900/30 rounded-xl text-xs font-semibold tracking-wider uppercase text-white flex items-center justify-center gap-2 cursor-pointer"
+                      className="mt-2 w-full py-3 bg-elevated border border-border hover:shadow-glass-glow hover:border-border-strong transition-all border border-border rounded-xl text-xs font-semibold tracking-wider uppercase text-foreground flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Launch Goal
-                      <ChevronRight className="w-4 h-4 text-blue-400" />
+                      <ChevronRight className="w-4 h-4 text-muted" />
                     </button>
                   </form>
                 )}
@@ -296,12 +298,12 @@ export const FloatingActionMenu = () => {
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
                         placeholder="Type quick thought and press send..."
-                        className="bg-black/60 border border-blue-900/35 rounded-xl px-4 py-2.5 text-xs text-white placeholder-blue-900/50 focus:outline-none focus:border-blue-500/40 transition-colors font-sans flex-1"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans flex-1"
                         autoFocus
                       />
                       <button
                         type="submit"
-                        className="w-10 h-10 rounded-xl bg-blue-950/60 border border-blue-900/30 text-blue-400 hover:text-white hover:border-blue-500/40 flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-10 h-10 rounded-xl bg-elevated border border-border text-muted hover:text-foreground hover:border-border-strong flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <Send className="w-4 h-4" />
                       </button>
@@ -309,36 +311,43 @@ export const FloatingActionMenu = () => {
 
                     {/* Quick note scrollable area */}
                     <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
-                      <label className="text-[10px] font-mono text-blue-500 uppercase tracking-widest mb-1 block">
+                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest mb-1 block">
                         Saved Notes
                       </label>
+                      <AnimatePresence mode="popLayout">
                       {notes.length === 0 ? (
-                        <p className="text-[10px] text-blue-200/20 text-center font-mono py-4 border border-dashed border-blue-950/40 rounded-xl">
+                        <p className="text-[10px] text-subtle text-center font-mono py-4 border border-dashed border-border rounded-xl">
                           No notes pinned. Add one above!
                         </p>
                       ) : (
                         notes.map(note => (
-                          <div 
-                            key={note.id} 
-                            className="bg-blue-950/20 border border-blue-900/10 hover:border-blue-900/30 rounded-xl p-3 flex justify-between items-start group/note transition-all"
+                          <motion.div
+                            key={note.id}
+                            layout
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="bg-elevated border border-border hover:border-border rounded-xl p-3 flex justify-between items-start group/note transition-all"
                           >
                             <div className="flex flex-col gap-1 pr-4">
-                              <p className="text-[11px] text-white font-sans leading-relaxed break-all">
+                              <p className="text-[11px] text-foreground font-sans leading-relaxed break-all">
                                 {note.text}
                               </p>
-                              <span className="text-[8px] font-mono text-blue-500/60">
+                              <span className="text-[8px] font-mono text-muted">
                                 {note.time}
                               </span>
                             </div>
                             <button
-                              onClick={() => deleteNote(note.id)}
-                              className="text-[9px] font-mono text-blue-500/30 hover:text-white transition-colors p-1"
+                              onClick={() => setNoteToDelete(note)}
+                              className="text-[9px] font-mono text-subtle hover:text-foreground transition-colors p-1"
                             >
                               Clear
                             </button>
-                          </div>
+                          </motion.div>
                         ))
                       )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 )}
@@ -347,18 +356,18 @@ export const FloatingActionMenu = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        open={!!noteToDelete}
+        onClose={() => setNoteToDelete(null)}
+        onConfirm={() => noteToDelete && deleteNote(noteToDelete.id)}
+        title="Delete Note"
+        message={
+          noteToDelete
+            ? `Remove this note? "${noteToDelete.text.slice(0, 60)}${noteToDelete.text.length > 60 ? '...' : ''}"`
+            : ''
+        }
+      />
     </>
   );
-};
-
-// Internal input handling helper to avoid react scope naming traps
-const setTaskTaskTitle = (val) => {
-  // Simple module helper
-  const inputEl = document.querySelector('input[placeholder="e.g. Design Linear Glass Effects"]');
-  if (inputEl) {
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    nativeInputValueSetter.call(inputEl, val);
-    const ev = new Event('input', { bubbles: true });
-    inputEl.dispatchEvent(ev);
-  }
 };

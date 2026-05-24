@@ -59,10 +59,10 @@ export const LoadingScreen = ({ onFinished }) => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed inset-0 w-full h-full bg-black z-50 flex flex-col items-center justify-center select-none"
+      className="fixed inset-0 w-full h-full bg-background z-50 flex flex-col items-center justify-center select-none"
     >
       {/* Background radial glow */}
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-blue-900/10 blur-[100px] pointer-events-none" />
+      <div className="absolute w-[400px] h-[400px] rounded-full bg-elevated/10 blur-[100px] pointer-events-none" />
 
       {/* Hourglass Container */}
       <div className="relative mb-10 flex flex-col items-center justify-center">
@@ -75,7 +75,7 @@ export const LoadingScreen = ({ onFinished }) => {
           {/* Glass body reflections & structure */}
           <svg
             viewBox="0 0 100 100"
-            className="w-full h-full text-blue-950 fill-none stroke-current"
+            className="w-full h-full text-subtle fill-none stroke-current"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -83,19 +83,19 @@ export const LoadingScreen = ({ onFinished }) => {
             {/* Outer glass boundary */}
             <path 
               d="M25,15 L75,15 C75,15 70,45 50,50 C30,45 25,15 25,15 Z" 
-              className="stroke-blue-900/40 fill-black/40"
+              className="stroke-border fill-surface"
             />
             <path 
               d="M25,85 L75,85 C75,85 70,55 50,50 C30,55 25,85 25,85 Z" 
-              className="stroke-blue-900/40 fill-black/40"
+              className="stroke-border fill-surface"
             />
             {/* Cap plates */}
-            <line x1="20" y1="15" x2="80" y2="15" className="stroke-white" />
-            <line x1="20" y1="85" x2="80" y2="85" className="stroke-white" />
+            <line x1="20" y1="15" x2="80" y2="15" className="stroke-foreground" />
+            <line x1="20" y1="85" x2="80" y2="85" className="stroke-foreground" />
             
             {/* Highlights */}
-            <path d="M30,22 C32,25 35,32 40,36" className="stroke-blue-500/20" strokeWidth="1.5" />
-            <path d="M70,78 C68,75 65,68 60,64" className="stroke-blue-500/20" strokeWidth="1.5" />
+            <path d="M30,22 C32,25 35,32 40,36" className="stroke-border" strokeWidth="1.5" />
+            <path d="M70,78 C68,75 65,68 60,64" className="stroke-border" strokeWidth="1.5" />
           </svg>
 
           {/* Core Sand Draining Effect */}
@@ -104,7 +104,7 @@ export const LoadingScreen = ({ onFinished }) => {
             <motion.div
               animate={{ y: ['-100%', '100%'] }}
               transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-              className="w-full h-8 bg-gradient-to-b from-white to-blue-500"
+              className="w-full h-8 bg-gradient-to-b from-white to-foreground"
             />
           </div>
 
@@ -120,7 +120,7 @@ export const LoadingScreen = ({ onFinished }) => {
               }}
               key={`top-sand-${rotation}`}
               transition={{ duration: 1.5, ease: "easeInOut" }}
-              className="w-[42px] h-[31px] bg-gradient-to-b from-blue-900 to-white/70"
+              className="w-[42px] h-[31px] bg-gradient-to-b from-gray-800 to-white/70"
             />
           </div>
 
@@ -136,7 +136,7 @@ export const LoadingScreen = ({ onFinished }) => {
               }}
               key={`bottom-sand-${rotation}`}
               transition={{ duration: 1.5, ease: "easeInOut" }}
-              className="w-[42px] h-[31px] bg-gradient-to-t from-blue-950 to-white"
+              className="w-[42px] h-[31px] bg-gradient-to-t from-gray-900 to-white"
             />
           </div>
 
@@ -153,14 +153,14 @@ export const LoadingScreen = ({ onFinished }) => {
                   delay: i * 0.15,
                   ease: "linear"
                 }}
-                className="w-[2px] h-[2px] bg-white rounded-full"
+                className="w-[2px] h-[2px] bg-foreground rounded-full"
               />
             ))}
           </div>
         </motion.div>
         
-        {/* Soft blue glowing platform shadow */}
-        <div className="w-16 h-[2px] bg-blue-500/20 rounded-full blur-[2px] mt-1 animate-pulse" />
+        {/* Platform shadow */}
+        <div className="w-16 h-[2px] bg-foreground/20 rounded-full blur-[2px] mt-1 animate-pulse" />
       </div>
 
       {/* Brand Text Animation */}
@@ -169,11 +169,11 @@ export const LoadingScreen = ({ onFinished }) => {
           initial={{ letterSpacing: "0.2em", opacity: 0 }}
           animate={{ letterSpacing: "0.08em", opacity: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
-          className="text-2xl font-bold tracking-wider font-sans uppercase mb-1 text-white text-glow"
+          className="text-2xl font-bold tracking-wider font-sans uppercase mb-1 text-foreground text-glow"
         >
           Gotta-do-it
         </motion.h1>
-        <span className="text-[10px] font-mono tracking-widest text-blue-500 uppercase opacity-75">
+        <span className="text-[10px] font-mono tracking-widest text-muted uppercase opacity-75">
           Focus Engine v1.0.0
         </span>
       </div>
@@ -188,7 +188,7 @@ export const LoadingScreen = ({ onFinished }) => {
               animate={{ y: 0, opacity: 0.8 }}
               exit={{ y: -8, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-xs text-center tracking-wide text-white/70 font-sans"
+              className="text-xs text-center tracking-wide text-foreground/70 font-sans"
             >
               {LOADING_STEPS[currentStep]}
             </motion.p>
@@ -196,14 +196,14 @@ export const LoadingScreen = ({ onFinished }) => {
         </div>
 
         {/* Technical Minimal Progress Track */}
-        <div className="relative w-full h-[2px] bg-blue-950/40 rounded-full overflow-hidden border border-blue-900/10">
+        <div className="relative w-full h-[2px] bg-elevated rounded-full overflow-hidden border border-border">
           <motion.div
             style={{ width: `${progress}%` }}
-            className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-900 via-white to-blue-500 shadow-blue-glow"
+            className="absolute left-0 top-0 h-full bg-gradient-to-r from-gray-800 via-white to-foreground shadow-glass-glow"
           />
         </div>
         
-        <span className="text-[9px] font-mono text-blue-500 mt-2 opacity-60">
+        <span className="text-[9px] font-mono text-muted mt-2 opacity-60">
           {progress}% CALCULATED
         </span>
       </div>

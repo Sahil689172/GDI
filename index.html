@@ -7,7 +7,7 @@
     
     <!-- SEO Meta Tags -->
     <title>Gotta-do-it | Premium Futuristic Productivity Dashboard</title>
-    <meta name="description" content="A ultra-premium, dark, futuristic, and minimal productivity application. Focus, organize, and accomplish your goals in an Apple + Notion + Linear inspired environment." />
+    <meta name="description" content="Ultra-premium monochrome productivity. Focus, organize, and accomplish your goals in an Apple + Notion + Linear inspired environment." />
     <meta name="keywords" content="productivity, focus, goals, organizer, minimal, elegant, apple design, linear app, task manager, dashboard" />
     <meta name="author" content="Gotta-do-it Team" />
     
@@ -16,18 +16,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
     
+    <script>
+      (function () {
+        var t = localStorage.getItem('gdi-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
     <style>
-      /* Prevent scrolling flash while loading */
       html, body {
-        background-color: #000000;
-        color: #ffffff;
         margin: 0;
         padding: 0;
         overflow-x: hidden;
       }
+      html[data-theme='dark'], html[data-theme='dark'] body {
+        background-color: #000000;
+        color: #ffffff;
+      }
+      html[data-theme='light'], html[data-theme='light'] body {
+        background-color: #fafafa;
+        color: #0a0a0a;
+      }
     </style>
   </head>
-  <body class="bg-black text-white antialiased font-sans">
+  <body class="bg-background text-foreground antialiased font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
