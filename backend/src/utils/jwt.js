@@ -1,12 +1,22 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { ApiError } from './ApiError.js';
 
 export const signToken = (userId) =>
   jwt.sign({ sub: userId }, env.jwt.secret, {
     expiresIn: env.jwt.expiresIn,
   });
 
-export const verifyToken = (token) => jwt.verify(token, env.jwt.secret);
+export const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, env.jwt.secret);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      throw ApiError.unauthorized('Token expired');
+    }
+    throw ApiError.unauthorized('Invalid token');
+  }
+};
 
 export const cookieOptions = {
   httpOnly: true,

@@ -12,8 +12,8 @@ const clearAuthCookie = (res) => {
   res.clearCookie(env.jwt.cookieName, { ...cookieOptions, maxAge: 0 });
 };
 
-export const register = asyncHandler(async (req, res) => {
-  const { user, token } = await authService.registerUser(req.body);
+export const signup = asyncHandler(async (req, res) => {
+  const { user, token } = await authService.signupUser(req.body);
   setAuthCookie(res, token);
   sendSuccess(res, {
     statusCode: 201,
@@ -36,7 +36,10 @@ export const logout = asyncHandler(async (_req, res) => {
   sendSuccess(res, { message: 'Logged out successfully' });
 });
 
-export const getMe = asyncHandler(async (req, res) => {
-  const user = await authService.getUserById(req.user._id);
-  sendSuccess(res, { data: { user } });
+export const getProfile = asyncHandler(async (req, res) => {
+  const user = await authService.getProfile(req.user._id);
+  sendSuccess(res, {
+    message: 'Profile retrieved successfully',
+    data: { user },
+  });
 });

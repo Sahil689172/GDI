@@ -11,6 +11,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../context/DashboardContext';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
 import { getPageTitle } from '../routes/navigation';
@@ -27,7 +28,16 @@ export const Topbar = memo(function Topbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { openSearch, openMobileMenu } = useApp();
+  const { user } = useAuth();
   const { streak } = useDashboard();
+  const displayName = user?.name ?? 'Operator';
+  const displayStreak = user?.streak ?? streak;
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
   const isMobile = useIsMobileLayout();
   const isHome = location.pathname === '/';
   const [time, setTime] = useState(new Date());
@@ -160,11 +170,13 @@ export const Topbar = memo(function Topbar() {
           </button>
           <div className="hidden md:flex items-center gap-2 pl-2 border-l border-border">
             <div className="text-right hidden xl:block">
-              <span className="text-xs font-medium text-foreground block">Sahil</span>
-              <span className="text-[9px] font-mono text-muted">{streak}d streak</span>
+              <span className="text-xs font-medium text-foreground block truncate max-w-[120px]">
+                {displayName}
+              </span>
+              <span className="text-[9px] font-mono text-muted">{displayStreak}d streak</span>
             </div>
             <div className="w-9 h-9 rounded-full bg-elevated border border-border flex items-center justify-center">
-              <span className="text-xs font-bold font-mono">S</span>
+              <span className="text-xs font-bold font-mono">{initials}</span>
             </div>
           </div>
         </div>

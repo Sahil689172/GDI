@@ -23,22 +23,15 @@ const userSchema = new mongoose.Schema(
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
-    avatar: {
-      type: String,
-      default: null,
-    },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+    streak: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     isActive: {
       type: Boolean,
       default: true,
-    },
-    lastLoginAt: {
-      type: Date,
-      default: null,
+      select: false,
     },
   },
   {
@@ -46,7 +39,9 @@ const userSchema = new mongoose.Schema(
     toJSON: {
       transform(_doc, ret) {
         delete ret.password;
+        delete ret.isActive;
         delete ret.__v;
+        delete ret.updatedAt;
         return ret;
       },
     },

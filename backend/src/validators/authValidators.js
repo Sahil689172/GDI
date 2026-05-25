@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 
-export const registerRules = [
+export const signupRules = [
   body('name')
     .trim()
     .notEmpty()

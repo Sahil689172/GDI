@@ -1,0 +1,7 @@
+.auth-shell {
+  background-color: var(--bg);
+}
+
+.auth-shell .liquid-glass {
+  box-shadow: var(--shadow-glass), var(--shadow-elevated);
+}

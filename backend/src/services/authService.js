@@ -1,21 +1,12 @@
 import { User } from '../models/User.js';
 import { ApiError } from '../utils/ApiError.js';
 import { signToken } from '../utils/jwt.js';
+import { toPublicUser } from '../utils/userMapper.js';
 
-const toPublicUser = (user) => ({
-  id: user._id,
-  name: user.name,
-  email: user.email,
-  avatar: user.avatar,
-  role: user.role,
-  createdAt: user.createdAt,
-  lastLoginAt: user.lastLoginAt,
-});
-
-export const registerUser = async ({ name, email, password }) => {
+export const signupUser = async ({ name, email, password }) => {
   const existing = await User.findOne({ email });
   if (existing) {
-    throw ApiError.conflict('Email already registered');
+    throw ApiError.conflict('An account with this email already exists');
   }
 
   const user = await User.create({ name, email, password });
@@ -25,7 +16,7 @@ export const registerUser = async ({ name, email, password }) => {
 };
 
 export const loginUser = async ({ email, password }) => {
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password +isActive');
   if (!user || !user.isActive) {
     throw ApiError.unauthorized('Invalid email or password');
   }
@@ -35,15 +26,12 @@ export const loginUser = async ({ email, password }) => {
     throw ApiError.unauthorized('Invalid email or password');
   }
 
-  user.lastLoginAt = new Date();
-  await user.save();
-
   const token = signToken(user._id.toString());
   return { user: toPublicUser(user), token };
 };
 
-export const getUserById = async (userId) => {
-  const user = await User.findById(userId);
+export const getProfile = async (userId) => {
+  const user = await User.findById(userId).select('+isActive');
   if (!user || !user.isActive) {
     throw ApiError.notFound('User not found');
   }

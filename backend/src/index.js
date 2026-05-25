@@ -7,9 +7,10 @@ const start = async () => {
     await connectDB();
     const app = createApp();
 
-    const server = app.listen(env.port, () => {
-      console.log(`[server] ${env.nodeEnv} mode → http://localhost:${env.port}`);
-      console.log(`[server] API base → http://localhost:${env.port}/api`);
+    const host = '127.0.0.1';
+    const server = app.listen(env.port, host, () => {
+      console.log(`[server] ${env.nodeEnv} mode → http://${host}:${env.port}`);
+      console.log(`[server] API base → http://${host}:${env.port}/api`);
     });
 
     const shutdown = async (signal) => {

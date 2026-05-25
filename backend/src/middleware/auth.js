@@ -4,7 +4,7 @@ import { verifyToken } from '../utils/jwt.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-const extractToken = (req) => {
+export const extractToken = (req) => {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) {
     return header.slice(7);
@@ -15,35 +15,32 @@ const extractToken = (req) => {
   return null;
 };
 
+/** Verifies JWT and attaches decoded payload to req.auth */
+export const verifyAuthToken = asyncHandler(async (req, _res, next) => {
+  const token = extractToken(req);
+  if (!token) {
+    throw ApiError.unauthorized('Authentication required');
+  }
+
+  const decoded = verifyToken(token);
+  req.auth = decoded;
+  next();
+});
+
+/** Loads active user after token verification — use on protected routes */
 export const protect = asyncHandler(async (req, _res, next) => {
   const token = extractToken(req);
   if (!token) {
     throw ApiError.unauthorized('Authentication required');
   }
 
-  let decoded;
-  try {
-    decoded = verifyToken(token);
-  } catch {
-    throw ApiError.unauthorized('Invalid or expired token');
-  }
-
-  const user = await User.findById(decoded.sub);
+  const decoded = verifyToken(token);
+  const user = await User.findById(decoded.sub).select('+isActive');
   if (!user || !user.isActive) {
     throw ApiError.unauthorized('User not found or inactive');
   }
 
+  req.auth = decoded;
   req.user = user;
   next();
 });
-
-export const authorize = (...roles) =>
-  asyncHandler(async (req, _res, next) => {
-    if (!req.user) {
-      throw ApiError.unauthorized('Authentication required');
-    }
-    if (!roles.includes(req.user.role)) {
-      throw ApiError.forbidden('Insufficient permissions');
-    }
-    next();
-  });

@@ -1,6 +1,6 @@
-# Gotta-do-it API
+# Gotta-do-it API — Authentication
 
-Node.js + Express + MongoDB backend with JWT authentication.
+Node.js, Express, MongoDB, Mongoose, JWT, bcrypt (bcryptjs), and dotenv.
 
 ## Setup
 
@@ -8,47 +8,21 @@ Node.js + Express + MongoDB backend with JWT authentication.
 cd backend
 npm install
 cp .env.example .env
-# Edit .env — set JWT_SECRET and MONGODB_URI
 npm run dev
 ```
 
-From the project root:
+## Auth endpoints
 
-```bash
-npm run dev:api
-```
+Base: `http://localhost:5000/api`
 
-## Environment
-
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Server port (default `5000`) |
-| `MONGODB_URI` | MongoDB connection string |
-| `JWT_SECRET` | Secret for signing tokens |
-| `JWT_EXPIRES_IN` | Token lifetime (default `7d`) |
-| `CLIENT_URL` | Allowed CORS origin(s), comma-separated |
-
-## API
-
-Base URL: `http://localhost:5000/api`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/health` | No | Health check |
-| POST | `/auth/register` | No | Create account |
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | `/auth/signup` | No | Create account |
 | POST | `/auth/login` | No | Sign in |
-| POST | `/auth/logout` | No | Clear auth cookie |
-| GET | `/auth/me` | Yes | Current user |
-| GET | `/users/profile` | Yes | Protected profile |
+| POST | `/auth/logout` | No | Clear session cookie |
+| GET | `/auth/profile` | Yes | Current user profile |
 
-### Auth headers
-
-Send the JWT as either:
-
-- `Authorization: Bearer <token>`
-- HttpOnly cookie `gdi_token` (set automatically on login/register)
-
-### Register / login body
+### Signup / login body
 
 ```json
 {
@@ -58,20 +32,38 @@ Send the JWT as either:
 }
 ```
 
-Password rules: min 8 chars, uppercase, lowercase, and number.
+### Auth header
 
-## Project structure
+`Authorization: Bearer <token>` or HttpOnly cookie `gdi_token`.
+
+### Success response shape
+
+```json
+{
+  "success": true,
+  "message": "Logged in successfully",
+  "data": {
+    "user": {
+      "id": "...",
+      "name": "Alex",
+      "email": "alex@example.com",
+      "streak": 0,
+      "createdAt": "2026-05-25T..."
+    },
+    "token": "eyJhbG..."
+  }
+}
+```
+
+## Structure
 
 ```
 src/
-  config/       env, database
-  controllers/  request handlers
-  middleware/   auth, validation, errors
-  models/       Mongoose schemas
-  routes/       API routers
-  services/     business logic
-  utils/        helpers (JWT, errors, async)
-  validators/   express-validator rules
-  app.js        Express app factory
-  index.js      Server entry
+  controllers/   authController.js
+  routes/        authRoutes.js, index.js
+  middleware/    auth.js, validate.js, errorHandler.js
+  models/        User.js
+  services/      authService.js
+  validators/    authValidators.js
+  utils/         jwt.js, userMapper.js, ApiError.js, ApiResponse.js
 ```

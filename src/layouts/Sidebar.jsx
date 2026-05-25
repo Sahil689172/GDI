@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../context/DashboardContext';
 import { useApp } from '../context/AppContext';
 import { NAV_ITEMS } from '../routes/navigation';
@@ -9,9 +10,19 @@ import { navIndicatorTransition } from '../animations/microinteractions';
 import { prefetchOnIntent } from '../utils/prefetchRoute';
 
 export const Sidebar = memo(function Sidebar() {
+  const { user, logout, actionLoading } = useAuth();
   const { streak } = useDashboard();
   const { sidebarCollapsed, toggleSidebar } = useApp();
   const location = useLocation();
+
+  const displayName = user?.name ?? 'Operator';
+  const displayStreak = user?.streak ?? streak;
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   const width = sidebarCollapsed ? 'w-[72px]' : 'w-64';
 
@@ -116,23 +127,30 @@ export const Sidebar = memo(function Sidebar() {
       <div className={`border-t border-border pt-4 flex flex-col gap-4 ${sidebarCollapsed ? 'items-center' : ''}`}>
         <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
           <div className="relative w-9 h-9 shrink-0 rounded-full bg-gradient-to-tr from-gray-900 via-gray-800 to-white/20 border border-border flex items-center justify-center">
-            <span className="text-xs font-semibold text-foreground font-mono">S</span>
+            <span className="text-xs font-semibold text-foreground font-mono">{initials}</span>
             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-foreground border border-background" />
           </div>
           {!sidebarCollapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="text-xs font-medium text-foreground font-sans leading-snug">Sahil</span>
+              <span className="text-xs font-medium text-foreground font-sans leading-snug truncate">
+                {displayName}
+              </span>
               <span className="text-[10px] font-mono text-muted leading-none">
-                Streak: {streak}d
+                Streak: {displayStreak}d
               </span>
             </div>
           )}
         </div>
 
         {!sidebarCollapsed && (
-          <button className="flex items-center gap-2.5 px-3 py-2 text-[10px] font-mono tracking-wider uppercase text-subtle hover:text-foreground transition-colors duration-200">
+          <button
+            type="button"
+            onClick={() => logout()}
+            disabled={actionLoading}
+            className="flex items-center gap-2.5 px-3 py-2 text-[10px] font-mono tracking-wider uppercase text-subtle hover:text-foreground transition-colors duration-200 disabled:opacity-50"
+          >
             <LogOut className="w-3.5 h-3.5" />
-            Logout
+            {actionLoading ? 'Signing out...' : 'Logout'}
           </button>
         )}
       </div>

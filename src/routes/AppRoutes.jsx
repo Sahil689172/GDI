@@ -1,8 +1,11 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '../layouts/AppLayout';
+import { AuthLayout } from '../layouts/AuthLayout';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { RouteLoader } from '../ui/RouteLoader';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
+import { GuestRoute } from '../components/auth/GuestRoute';
 import { lazyRoute } from '../utils/lazyRoute';
 
 const HomePage = lazyRoute(
@@ -33,6 +36,14 @@ const ProfilePage = lazyRoute(
   () => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })),
   'ProfilePage'
 );
+const LoginPage = lazyRoute(
+  () => import('../pages/LoginPage').then((m) => ({ default: m.LoginPage })),
+  'LoginPage'
+);
+const SignupPage = lazyRoute(
+  () => import('../pages/SignupPage').then((m) => ({ default: m.SignupPage })),
+  'SignupPage'
+);
 
 const RouteBoundary = ({ children, name }) => (
   <ErrorBoundary title={`Could not load ${name}`}>{children}</ErrorBoundary>
@@ -40,78 +51,105 @@ const RouteBoundary = ({ children, name }) => (
 
 export const AppRoutes = () => (
   <Routes>
-    <Route element={<AppLayout />}>
-      <Route
-        index
-        element={
-          <RouteBoundary name="Home">
-            <Suspense fallback={<RouteLoader />}>
-              <HomePage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="tasks"
-        element={
-          <RouteBoundary name="Tasks">
-            <Suspense fallback={<RouteLoader />}>
-              <TasksPage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="goals"
-        element={
-          <RouteBoundary name="Goals">
-            <Suspense fallback={<RouteLoader />}>
-              <GoalsPage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="calendar"
-        element={
-          <RouteBoundary name="Calendar">
-            <Suspense fallback={<RouteLoader />}>
-              <CalendarPage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="analytics"
-        element={
-          <RouteBoundary name="Analytics">
-            <Suspense fallback={<RouteLoader />}>
-              <AnalyticsPage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="focus"
-        element={
-          <RouteBoundary name="Focus">
-            <Suspense fallback={<RouteLoader />}>
-              <FocusPage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route
-        path="profile"
-        element={
-          <RouteBoundary name="Profile">
-            <Suspense fallback={<RouteLoader />}>
-              <ProfilePage />
-            </Suspense>
-          </RouteBoundary>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
+    <Route element={<GuestRoute />}>
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/login"
+          element={
+            <RouteBoundary name="Login">
+              <Suspense fallback={<RouteLoader label="Loading..." />}>
+                <LoginPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <RouteBoundary name="Signup">
+              <Suspense fallback={<RouteLoader label="Loading..." />}>
+                <SignupPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+      </Route>
+    </Route>
+
+    <Route element={<ProtectedRoute />}>
+      <Route element={<AppLayout />}>
+        <Route
+          index
+          element={
+            <RouteBoundary name="Home">
+              <Suspense fallback={<RouteLoader />}>
+                <HomePage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="tasks"
+          element={
+            <RouteBoundary name="Tasks">
+              <Suspense fallback={<RouteLoader />}>
+                <TasksPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="goals"
+          element={
+            <RouteBoundary name="Goals">
+              <Suspense fallback={<RouteLoader />}>
+                <GoalsPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="calendar"
+          element={
+            <RouteBoundary name="Calendar">
+              <Suspense fallback={<RouteLoader />}>
+                <CalendarPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="analytics"
+          element={
+            <RouteBoundary name="Analytics">
+              <Suspense fallback={<RouteLoader />}>
+                <AnalyticsPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="focus"
+          element={
+            <RouteBoundary name="Focus">
+              <Suspense fallback={<RouteLoader />}>
+                <FocusPage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <RouteBoundary name="Profile">
+              <Suspense fallback={<RouteLoader />}>
+                <ProfilePage />
+              </Suspense>
+            </RouteBoundary>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
     </Route>
   </Routes>
 );

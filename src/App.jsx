@@ -41,7 +41,12 @@ const AppContent = () => {
 export default function App() {
   return (
     <ErrorBoundary title="Application error">
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <AppProviders>
           <AppContent />
         </AppProviders>

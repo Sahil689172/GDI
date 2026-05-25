@@ -4,7 +4,9 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
+import { useAuth } from './AuthContext';
 
 const STORAGE_KEY = 'gdi-profile-v1';
 
@@ -96,8 +98,28 @@ export const useProfile = () => {
 };
 
 export const ProfileProvider = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState(load);
   const [saveToast, setSaveToast] = useState(null);
+  const syncedUserId = useRef(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    if (syncedUserId.current === user.id) return;
+    syncedUserId.current = user.id;
+    setData((prev) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        name: user.name,
+        email: user.email,
+      },
+    }));
+  }, [isAuthenticated, user?.id, user?.name, user?.email]);
+
+  useEffect(() => {
+    if (!isAuthenticated) syncedUserId.current = null;
+  }, [isAuthenticated]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));

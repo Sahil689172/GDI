@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { ThemeProvider } from '../context/ThemeContext';
+import { AuthProvider } from '../context/AuthContext';
 import { AppProvider } from '../context/AppContext';
 import { TasksProvider } from '../context/TasksContext';
 import { GoalsProvider } from '../context/GoalsContext';
@@ -11,6 +12,7 @@ import { DashboardProvider } from '../context/DashboardContext';
 const ProviderTree = memo(function ProviderTree({ children }) {
   return (
     <ThemeProvider>
+      <AuthProvider>
       <AppProvider>
         <TasksProvider>
           <GoalsProvider>
@@ -24,6 +26,7 @@ const ProviderTree = memo(function ProviderTree({ children }) {
           </GoalsProvider>
         </TasksProvider>
       </AppProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 });
