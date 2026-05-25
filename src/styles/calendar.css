@@ -1,0 +1,265 @@
+/* Monochrome react-big-calendar overrides */
+.gdi-calendar {
+  --rbc-bg: var(--bg);
+  --rbc-fg: var(--fg);
+  --rbc-muted: var(--muted);
+  --rbc-border: var(--border-color);
+  --rbc-elevated: var(--elevated);
+}
+
+.gdi-calendar .rbc-calendar {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color: var(--rbc-fg);
+  background: transparent;
+}
+
+.gdi-calendar .rbc-toolbar {
+  display: none;
+}
+
+.gdi-calendar .rbc-header {
+  padding: 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rbc-muted);
+  border-bottom: 1px solid var(--rbc-border);
+  background: transparent;
+}
+
+.gdi-calendar .rbc-month-view,
+.gdi-calendar .rbc-time-view {
+  border: 1px solid var(--rbc-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--rbc-elevated);
+}
+
+.gdi-calendar .rbc-day-bg + .rbc-day-bg,
+.gdi-calendar .rbc-month-row + .rbc-month-row {
+  border-color: var(--rbc-border);
+}
+
+.gdi-calendar .rbc-off-range-bg {
+  background: var(--surface);
+}
+
+.gdi-calendar .rbc-today {
+  background: color-mix(in srgb, var(--rbc-fg) 6%, transparent);
+}
+
+.gdi-calendar .rbc-date-cell {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  color: var(--rbc-muted);
+}
+
+.gdi-calendar .rbc-date-cell.rbc-now {
+  color: var(--rbc-fg);
+  font-weight: 700;
+}
+
+.gdi-calendar .rbc-event {
+  border: 1px solid var(--rbc-border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--rbc-fg) !important;
+  color: var(--rbc-bg) !important;
+  box-shadow: var(--shadow-glass);
+}
+
+.gdi-calendar .rbc-event.event-priority-high {
+  background: var(--rbc-fg) !important;
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glass);
+}
+
+.gdi-calendar .rbc-event.event-priority-low {
+  opacity: 0.75;
+  background: color-mix(in srgb, var(--rbc-fg) 70%, var(--rbc-bg)) !important;
+}
+
+.gdi-calendar .rbc-event.event-type-focus {
+  background: color-mix(in srgb, var(--rbc-fg) 85%, transparent) !important;
+  border-style: dashed;
+}
+
+.gdi-calendar .rbc-event.event-type-goal {
+  border-width: 1.5px;
+}
+
+.gdi-calendar .rbc-event.event-type-reminder {
+  font-size: 9px;
+  opacity: 0.9;
+}
+
+.gdi-calendar .rbc-event-label {
+  font-size: 9px;
+}
+
+.gdi-calendar .rbc-show-more {
+  color: var(--rbc-muted);
+  font-size: 9px;
+  font-weight: 600;
+  background: transparent;
+}
+
+.gdi-calendar .rbc-time-slot {
+  border-color: var(--rbc-border);
+  min-height: 20px;
+}
+
+.gdi-calendar .rbc-timeslot-group {
+  border-color: var(--rbc-border);
+}
+
+.gdi-calendar .rbc-time-header-content {
+  border-color: var(--rbc-border);
+}
+
+.gdi-calendar .rbc-time-content {
+  border-color: var(--rbc-border);
+}
+
+.gdi-calendar .rbc-time-gutter,
+.gdi-calendar .rbc-time-header-gutter {
+  font-size: 9px;
+  font-family: 'Space Mono', monospace;
+  color: var(--rbc-muted);
+}
+
+.gdi-calendar .rbc-current-time-indicator {
+  background: var(--rbc-fg);
+  height: 2px;
+}
+
+.gdi-calendar .rbc-allday-cell {
+  border-color: var(--rbc-border);
+}
+
+.gdi-calendar .rbc-day-slot .rbc-time-slot {
+  border-top-color: color-mix(in srgb, var(--rbc-border) 50%, transparent);
+}
+
+.gdi-calendar .rbc-addons-dnd-drag-preview {
+  opacity: 0.85;
+}
+
+.gdi-calendar .rbc-addons-dnd-resize-ns-icon,
+.gdi-calendar .rbc-addons-dnd-resize-ew-icon {
+  border-color: var(--rbc-fg);
+}
+
+/* ── "+N more" popup overlay ───────────────────────────────────────── */
+.gdi-calendar .rbc-month-view {
+  position: relative;
+}
+
+.gdi-calendar .rbc-overlay {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 200px !important;
+  max-width: min(320px, 92vw);
+  max-height: min(320px, 55vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+  border: 1px solid var(--rbc-border);
+  border-radius: 14px;
+  background: var(--rbc-elevated) !important;
+  color: var(--rbc-fg);
+  box-shadow: var(--shadow-glass-glow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.gdi-calendar .rbc-overlay-header {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rbc-border);
+  background: var(--surface);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rbc-muted);
+}
+
+/* Stack events vertically — no overlap (direct children + DnD wrapper) */
+.gdi-calendar .rbc-overlay > .rbc-event,
+.gdi-calendar .rbc-overlay > div > .rbc-event {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 34px;
+  max-height: none;
+  margin: 0 !important;
+  flex-shrink: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: 1px solid var(--rbc-border);
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.35;
+  background: var(--rbc-fg) !important;
+  color: var(--rbc-bg) !important;
+  box-shadow: none;
+}
+
+.gdi-calendar .rbc-overlay > .rbc-event:last-child,
+.gdi-calendar .rbc-overlay > div:last-child .rbc-event {
+  border-bottom: none;
+}
+
+.gdi-calendar .rbc-overlay .rbc-event-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  line-height: 1.35;
+  font-size: 11px;
+}
+
+.gdi-calendar .rbc-overlay .rbc-addons-dnd-resizable {
+  position: static !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.gdi-calendar .rbc-overlay .rbc-addons-dnd-resize-ns-icon,
+.gdi-calendar .rbc-overlay .rbc-addons-dnd-resize-ew-icon {
+  display: none !important;
+}
+
+/* Dim underlying cell events while popup is open */
+.gdi-calendar .rbc-month-view:has(.rbc-overlay) .rbc-row-content {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Monochrome "+N more" link */
+.gdi-calendar .rbc-show-more {
+  color: var(--rbc-muted) !important;
+  background: transparent !important;
+}
+
+.gdi-calendar .rbc-show-more:hover,
+.gdi-calendar .rbc-show-more:focus {
+  color: var(--rbc-fg) !important;
+}
