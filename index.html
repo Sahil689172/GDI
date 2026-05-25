@@ -32,10 +32,12 @@
         -webkit-tap-highlight-color: transparent;
       }
       html {
-        scroll-behavior: smooth;
+        overflow-y: scroll;
+        height: auto;
       }
-      @media (prefers-reduced-motion: reduce) {
-        html { scroll-behavior: auto; }
+      body {
+        overflow-y: visible;
+        min-height: 100dvh;
       }
       html[data-theme='dark'], html[data-theme='dark'] body {
         background-color: #000000;

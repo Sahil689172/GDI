@@ -34,7 +34,7 @@ export const AppLayout = () => {
   const desktopPad = sidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-64';
 
   return (
-    <div className="mobile-app-shell min-h-[100dvh] w-full overflow-x-hidden text-foreground bg-background touch-manipulation">
+    <div className="mobile-app-shell text-foreground bg-background">
       <AnimatedBackground />
       <GlobalSearch />
       <MobileDrawer />
@@ -43,11 +43,11 @@ export const AppLayout = () => {
       <MobileNav />
 
       <div
-        className={`mobile-main-column relative z-10 flex w-full min-w-0 min-h-[100dvh] flex-col ${desktopPad}`}
+        className={`mobile-main-column relative z-10 flex w-full min-w-0 flex-col ${desktopPad}`}
       >
         <Topbar />
 
-        <main className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto scroll-smooth-touch">
+        <main className="w-full min-w-0 max-w-full">
           <div
             className={`w-full max-w-full mx-auto ${
               isMobile

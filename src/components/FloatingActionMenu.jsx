@@ -131,7 +131,7 @@ export const FloatingActionMenu = () => {
   return (
     <>
       <div
-        className="fixed right-4 md:right-6 z-[35] md:z-40 flex flex-col items-end gap-2 select-none touch-manipulation md:bottom-8"
+        className="fixed right-4 md:right-6 z-[35] md:z-40 flex flex-col items-end gap-2 select-none pointer-events-none md:bottom-8"
         style={{
           bottom: 'max(calc(var(--mobile-nav-total) + 0.75rem), 5.5rem)',
         }}
@@ -143,7 +143,7 @@ export const FloatingActionMenu = () => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="flex flex-col items-end gap-2 mb-1"
+              className="flex flex-col items-end gap-2 mb-1 pointer-events-auto"
             >
               {ACTION_ITEMS.map((item) => {
                 const Icon = item.icon;
@@ -178,7 +178,7 @@ export const FloatingActionMenu = () => {
           onClick={toggleMenu}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-glass-glow border border-border-strong outline-none"
+          className="pointer-events-auto w-12 h-12 md:w-14 md:h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-glass-glow border border-border-strong outline-none touch-manipulation"
           aria-label={isOpen ? 'Close menu' : 'Quick actions'}
           aria-expanded={isOpen}
         >
@@ -317,7 +317,7 @@ export const FloatingActionMenu = () => {
                         <Send className="w-4 h-4" />
                       </button>
                     </form>
-                    <div className="max-h-48 overflow-y-auto space-y-2 no-scrollbar">
+                    <div className="max-h-48 scroll-region space-y-2 no-scrollbar">
                       {notes.length === 0 ? (
                         <p className="text-[10px] text-muted text-center py-6 font-sans">
                           No notes yet

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, Clock } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { useSearchIndex } from '../../hooks/useSearchIndex';
 import { useCommandPalette } from '../../hooks/useCommandPalette';
 import { SearchCategoryGroup } from './SearchCategoryGroup';
@@ -24,6 +25,7 @@ const saveRecent = (list) => {
 
 export const CommandPalette = () => {
   const { searchOpen, closeSearch, triggerQuickAction } = useApp();
+  useScrollLock(searchOpen);
   const [query, setQuery] = useState('');
   const [recentQueries, setRecentQueries] = useState(loadRecent);
   const inputRef = useRef(null);
@@ -114,7 +116,7 @@ export const CommandPalette = () => {
   return (
     <AnimatePresence>
       {searchOpen && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-start justify-center sm:pt-[12vh] px-0 sm:px-4 touch-manipulation">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-start justify-center sm:pt-[12vh] px-0 sm:px-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -160,7 +162,10 @@ export const CommandPalette = () => {
               </button>
             </div>
 
-            <div ref={listRef} className="flex-1 min-h-0 max-h-[min(60dvh,480px)] sm:max-h-[min(50vh,420px)] overflow-y-auto scroll-smooth-touch p-3 no-scrollbar">
+            <div
+              ref={listRef}
+              className="flex-1 min-h-0 max-h-[min(60dvh,480px)] sm:max-h-[min(50vh,420px)] scroll-region scroll-smooth-touch p-3 no-scrollbar"
+            >
               {flatItems.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-xs text-muted font-sans">No results found</p>

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Minimize2 } from 'lucide-react';
 import { useFocus } from '../../context/FocusContext';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { FocusAmbientBackground } from './FocusAmbientBackground';
 import { FocusProgressRing } from './FocusProgressRing';
@@ -24,17 +25,15 @@ export const FullscreenFocusMode = () => {
     skipBreak,
   } = useFocus();
 
+  useScrollLock(isFullscreen);
+
   useEffect(() => {
     if (!isFullscreen) return undefined;
     const onKey = (e) => {
       if (e.key === 'Escape') setIsFullscreen(false);
     };
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onKey);
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, [isFullscreen, setIsFullscreen]);
 
   const active = status === 'running';

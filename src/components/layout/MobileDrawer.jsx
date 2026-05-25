@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Search } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useDashboard } from '../../context/DashboardContext';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { NAV_ITEMS } from '../../routes/navigation';
 import { ThemeToggle } from '../ThemeToggle';
 
@@ -12,16 +13,7 @@ export const MobileDrawer = () => {
   const { streak } = useDashboard();
   const location = useLocation();
 
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileMenuOpen]);
+  useScrollLock(mobileMenuOpen);
 
   const handleNav = () => closeMobileMenu();
 
@@ -83,7 +75,7 @@ export const MobileDrawer = () => {
               </kbd>
             </button>
 
-            <nav className="flex-1 overflow-y-auto scroll-smooth-touch p-4 space-y-1">
+            <nav className="flex-1 scroll-region scroll-smooth-touch p-4 space-y-1 min-h-0">
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;

@@ -95,7 +95,7 @@ export const DashboardMobile = () => {
   ];
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden pb-4">
+    <div className="w-full max-w-full pb-4">
       <header className="mb-6">
         <motion.h1
           initial={{ opacity: 0, y: 8 }}

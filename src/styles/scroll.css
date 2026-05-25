@@ -1,0 +1,62 @@
+/* ——— Document scroll (touchpad, wheel, touch) ——— */
+html {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  height: auto;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: visible;
+  position: relative;
+}
+
+#root {
+  min-height: 100%;
+  width: 100%;
+}
+
+/* App shell: grow with content; do not create a viewport scroll trap */
+.mobile-app-shell {
+  min-height: 100dvh;
+  width: 100%;
+  overflow-x: clip;
+}
+
+.mobile-main-column {
+  min-height: 0;
+  width: 100%;
+}
+
+.mobile-main-column > main {
+  overflow: visible;
+}
+
+/* Lock document only when overlays are open */
+html.scroll-locked,
+body.scroll-locked {
+  overflow: hidden !important;
+}
+
+body.scroll-locked {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  right: 0;
+}
+
+/* Intentional nested scroll regions (modals, drawer nav, lists) */
+.scroll-region {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
