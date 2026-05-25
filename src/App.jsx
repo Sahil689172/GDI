@@ -5,6 +5,7 @@ import { DashboardProvider } from './context/DashboardContext';
 import { TasksProvider } from './context/TasksContext';
 import { GoalsProvider } from './context/GoalsContext';
 import { CalendarProvider } from './context/CalendarContext';
+import { FocusProvider } from './context/FocusContext';
 import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -41,9 +42,11 @@ export default function App() {
         <TasksProvider>
           <GoalsProvider>
           <CalendarProvider>
+          <FocusProvider>
           <DashboardProvider>
             <AppContent />
           </DashboardProvider>
+          </FocusProvider>
           </CalendarProvider>
           </GoalsProvider>
         </TasksProvider>
