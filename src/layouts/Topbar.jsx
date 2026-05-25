@@ -15,6 +15,7 @@ import { useDashboard } from '../context/DashboardContext';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
 import { getPageTitle } from '../routes/navigation';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { DURATION, EASE } from '../animations/motion';
 
 const QUICK_ACTIONS = [
   { label: 'Add Task', icon: Plus, path: '/tasks' },
@@ -73,9 +74,10 @@ export const Topbar = () => {
   return (
     <header className="sticky top-0 z-20 w-full px-4 md:px-8 pt-2 sm:pt-4 pb-2 pt-safe">
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="liquid-glass rounded-xl sm:rounded-2xl px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-border min-w-0"
+        transition={{ duration: DURATION.normal, ease: EASE.out }}
+        className="liquid-glass glass-interactive rounded-xl sm:rounded-2xl px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-border min-w-0"
       >
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {isMobile && (

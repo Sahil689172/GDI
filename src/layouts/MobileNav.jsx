@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { NAV_ITEMS } from '../routes/navigation';
+import { navIndicatorTransition } from '../animations/microinteractions';
 
 const PRIMARY_PATHS = ['/', '/tasks', '/calendar', '/focus'];
 
@@ -44,16 +45,17 @@ export const MobileNav = () => {
                 <motion.div
                   layoutId="mobile-tab-indicator"
                   className="absolute inset-1 rounded-2xl bg-elevated border border-border-strong shadow-glass-glow"
-                  transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                  transition={navIndicatorTransition}
                 />
               )}
-              <Icon
-                className="relative z-10 w-[22px] h-[22px] shrink-0"
-                strokeWidth={isActive ? 2.25 : 1.75}
-              />
-              <span className="relative z-10 text-[10px] font-medium font-sans leading-none">
-                {item.label}
-              </span>
+              <motion.div
+                className="relative z-10 flex flex-col items-center gap-1"
+                animate={{ scale: isActive ? 1 : 0.92, opacity: isActive ? 1 : 0.7 }}
+                transition={navIndicatorTransition}
+              >
+                <Icon className="w-[22px] h-[22px] shrink-0" strokeWidth={isActive ? 2.25 : 1.75} />
+                <span className="text-[10px] font-medium font-sans leading-none">{item.label}</span>
+              </motion.div>
             </NavLink>
           );
         })}
@@ -71,14 +73,17 @@ export const MobileNav = () => {
             <motion.div
               layoutId="mobile-tab-indicator"
               className="absolute inset-1 rounded-2xl bg-elevated border border-border-strong shadow-glass-glow"
-              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              transition={navIndicatorTransition}
             />
           )}
-          <Menu
-            className="relative z-10 w-[22px] h-[22px] shrink-0"
-            strokeWidth={isMoreActive ? 2.25 : 1.75}
-          />
-          <span className="relative z-10 text-[10px] font-medium font-sans leading-none">More</span>
+          <motion.div
+            className="relative z-10 flex flex-col items-center gap-1"
+            animate={{ scale: isMoreActive ? 1 : 0.92, opacity: isMoreActive ? 1 : 0.7 }}
+            transition={navIndicatorTransition}
+          >
+            <Menu className="w-[22px] h-[22px] shrink-0" strokeWidth={isMoreActive ? 2.25 : 1.75} />
+            <span className="text-[10px] font-medium font-sans leading-none">More</span>
+          </motion.div>
         </button>
       </div>
     </nav>

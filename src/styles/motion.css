@@ -1,0 +1,47 @@
+/* Glass reflection — pointer devices only, GPU-friendly */
+@media (hover: hover) and (pointer: fine) {
+  .liquid-glass.glass-interactive::before {
+    transition: left 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .liquid-glass.glass-interactive:hover::before {
+    left: 100%;
+  }
+}
+
+/* Subtle ambient shimmer on glow cards */
+@keyframes glass-ambient {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.liquid-glass.glass-glow-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 0%,
+    var(--glass-shine),
+    transparent 70%
+  );
+  animation: glass-ambient 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass.glass-glow-pulse::after {
+    animation: none;
+    opacity: 0.35;
+  }
+
+  .liquid-glass.glass-interactive::before {
+    transition: none;
+  }
+}

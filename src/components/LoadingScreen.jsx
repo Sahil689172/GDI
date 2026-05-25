@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { loadingExit, loadingStep } from '../animations/microinteractions';
+import { DURATION, EASE, SPRING } from '../animations/motion';
 
 const LOADING_STEPS = [
   "Calibrating Focus Metrics...",
@@ -57,8 +59,7 @@ export const LoadingScreen = ({ onFinished }) => {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      exit={loadingExit}
       className="fixed inset-0 w-full h-full bg-background z-50 flex flex-col items-center justify-center select-none"
     >
       {/* Background radial glow */}
@@ -69,7 +70,7 @@ export const LoadingScreen = ({ onFinished }) => {
         {/* Hourglass Rotating Frame */}
         <motion.div
           animate={{ rotate: rotation }}
-          transition={{ type: "spring", stiffness: 120, damping: 14 }}
+          transition={SPRING.gentle}
           className="relative w-28 h-28 flex items-center justify-center"
         >
           {/* Glass body reflections & structure */}
@@ -168,7 +169,7 @@ export const LoadingScreen = ({ onFinished }) => {
         <motion.h1 
           initial={{ letterSpacing: "0.2em", opacity: 0 }}
           animate={{ letterSpacing: "0.08em", opacity: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: DURATION.cinematic, ease: EASE.out }}
           className="text-2xl font-bold tracking-wider font-sans uppercase mb-1 text-foreground text-glow"
         >
           Gotta-do-it
@@ -184,10 +185,7 @@ export const LoadingScreen = ({ onFinished }) => {
           <AnimatePresence mode="wait">
             <motion.p
               key={currentStep}
-              initial={{ y: 8, opacity: 0 }}
-              animate={{ y: 0, opacity: 0.8 }}
-              exit={{ y: -8, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              {...loadingStep}
               className="text-xs text-center tracking-wide text-foreground/70 font-sans"
             >
               {LOADING_STEPS[currentStep]}

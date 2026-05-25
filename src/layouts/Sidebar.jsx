@@ -5,6 +5,7 @@ import { Zap, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { useApp } from '../context/AppContext';
 import { NAV_ITEMS } from '../routes/navigation';
+import { navIndicatorTransition } from '../animations/microinteractions';
 
 export const Sidebar = () => {
   const { streak } = useDashboard();
@@ -81,7 +82,7 @@ export const Sidebar = () => {
                   <motion.div
                     layoutId="sidebar-active"
                     className="absolute inset-0 rounded-xl bg-gradient-to-r from-gray-900/60 to-surface border border-border shadow-glass-glow z-0"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    transition={navIndicatorTransition}
                   />
                 )}
 

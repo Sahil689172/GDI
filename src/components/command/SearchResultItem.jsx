@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { DURATION, EASE } from '../../animations/motion';
 
 export const SearchResultItem = ({
   item,
@@ -15,13 +16,14 @@ export const SearchResultItem = ({
     <motion.button
       type="button"
       data-selected={selected ? 'true' : 'false'}
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: Math.min(index * 0.02, 0.12) }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: DURATION.fast, ease: EASE.out, delay: Math.min(index * 0.015, 0.08) }}
+      whileTap={{ scale: 0.99 }}
       onClick={() => onSelect(index)}
       onMouseEnter={() => onHover(index)}
       className={`
-        w-full flex items-center justify-between gap-3 px-3 py-3 sm:py-2.5 rounded-xl text-left transition-all touch-manipulation active:scale-[0.99]
+        w-full flex items-center justify-between gap-3 px-3 py-3 sm:py-2.5 rounded-xl text-left transition-colors touch-manipulation
         ${selected
           ? 'bg-elevated border border-border-strong shadow-glass-glow'
           : 'border border-transparent hover:bg-surface hover:border-border'

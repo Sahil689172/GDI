@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, Clock } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { overlayVariants, paletteVariants } from '../../animations/microinteractions';
 import { useSearchIndex } from '../../hooks/useSearchIndex';
 import { useCommandPalette } from '../../hooks/useCommandPalette';
 import { SearchCategoryGroup } from './SearchCategoryGroup';
@@ -118,20 +119,20 @@ export const CommandPalette = () => {
       {searchOpen && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-start justify-center sm:pt-[12vh] px-0 sm:px-4">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            variants={overlayVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
             onClick={handleClose}
             className="absolute inset-0 bg-overlay backdrop-blur-xl"
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -12 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            className="relative w-full sm:max-w-xl max-h-[min(92dvh,640px)] sm:max-h-none flex flex-col liquid-glass rounded-t-2xl sm:rounded-2xl rounded-b-none sm:rounded-b-2xl border border-border border-b-0 sm:border-b shadow-glass-glow overflow-hidden"
+            variants={paletteVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="relative w-full sm:max-w-xl max-h-[min(92dvh,640px)] sm:max-h-none flex flex-col liquid-glass glass-interactive rounded-t-2xl sm:rounded-2xl rounded-b-none sm:rounded-b-2xl border border-border border-b-0 sm:border-b shadow-glass-glow overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"

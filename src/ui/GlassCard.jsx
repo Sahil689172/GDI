@@ -1,5 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { cardHoverLift, cardTap } from '../animations/microinteractions';
+import { SPRING } from '../animations/motion';
 
 export const GlassCard = ({
   children,
@@ -9,42 +12,36 @@ export const GlassCard = ({
   onClick,
   ...props
 }) => {
+  const reduced = useReducedMotion();
   const canHover =
+    !reduced &&
     typeof window !== 'undefined' &&
     window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   const hoverProps =
-    hover && canHover && !onClick
-      ? {
-          whileHover: {
-            y: -2,
-            scale: 1.003,
-            boxShadow: 'var(--shadow-glass)',
-            borderColor: 'var(--border-strong)',
-          },
-        }
-      : hover && canHover && onClick
-        ? {
-            whileHover: { scale: 1.01 },
-            whileTap: { scale: 0.98 },
-          }
-        : onClick
-          ? { whileTap: { scale: 0.98 } }
-          : {};
+    reduced
+      ? onClick
+        ? { whileTap: cardTap }
+        : {}
+      : hover && canHover && !onClick
+        ? { whileHover: cardHoverLift }
+        : hover && canHover && onClick
+          ? { whileHover: { y: -2, transition: SPRING.soft }, whileTap: cardTap }
+          : onClick
+            ? { whileTap: cardTap }
+            : {};
 
   return (
     <motion.div
       onClick={onClick}
       {...hoverProps}
-      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+      transition={SPRING.soft}
       className={`
-        liquid-glass
+        liquid-glass glass-interactive
         rounded-xl sm:rounded-2xl
         p-4 sm:p-5 md:p-6
-        transition-all
-        duration-300
         min-w-0
-        ${glow ? 'shadow-glass-glow border-border-strong' : 'border-border'}
+        ${glow ? 'shadow-glass-glow border-border-strong glass-glow-pulse' : 'border-border'}
         ${onClick ? 'cursor-pointer touch-manipulation' : ''}
         ${className}
       `}

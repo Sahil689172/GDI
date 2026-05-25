@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { staggerContainer, staggerItem } from '../../animations/microinteractions';
 import { useDashboard } from '../../context/DashboardContext';
 import { GlassCard } from '../../ui/GlassCard';
 import {
@@ -95,15 +96,16 @@ export const DashboardMobile = () => {
   ];
 
   return (
-    <div className="w-full max-w-full pb-4">
-      <header className="mb-6">
-        <motion.h1
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-[1.75rem] leading-tight font-bold tracking-tight text-foreground font-sans"
-        >
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="w-full max-w-full pb-4"
+    >
+      <motion.header variants={staggerItem} className="mb-6">
+        <h1 className="text-[1.75rem] leading-tight font-bold tracking-tight text-foreground font-sans">
           {greeting}
-        </motion.h1>
+        </h1>
         <p className="text-sm text-muted font-sans mt-2 leading-relaxed">
           {incomplete} task{incomplete !== 1 ? 's' : ''} left today · {progressPercentage}% flow
         </p>
@@ -113,9 +115,9 @@ export const DashboardMobile = () => {
             Synced
           </span>
         </div>
-      </header>
+      </motion.header>
 
-      <section className="grid grid-cols-2 gap-3 mb-6">
+      <motion.section variants={staggerItem} className="grid grid-cols-2 gap-3 mb-6">
         <MetricCard
           label="Progress"
           value={`${progressPercentage}%`}
@@ -131,9 +133,9 @@ export const DashboardMobile = () => {
         />
         <MetricCard label="Streak" value={`${streak}d`} sub="Keep it going" icon={Flame} />
         <MetricCard label="Focus" value={`${focusHours}h`} sub="Total hours" icon={Clock} />
-      </section>
+      </motion.section>
 
-      <section className="mb-6">
+      <motion.section variants={staggerItem} className="mb-6">
         <GlassCard className="!p-4" hover={false}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-foreground font-sans uppercase tracking-wider">
@@ -172,9 +174,9 @@ export const DashboardMobile = () => {
             </div>
           </div>
         </GlassCard>
-      </section>
+      </motion.section>
 
-      <section className="mb-6">
+      <motion.section variants={staggerItem} className="mb-6">
         <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted mb-3 px-0.5">
           Quick actions
         </h2>
@@ -222,9 +224,9 @@ export const DashboardMobile = () => {
             </motion.form>
           )}
         </AnimatePresence>
-      </section>
+      </motion.section>
 
-      <section className="mb-6">
+      <motion.section variants={staggerItem} className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[10px] font-mono uppercase tracking-widest text-muted">Tasks</h2>
           <button
@@ -269,9 +271,9 @@ export const DashboardMobile = () => {
             ))
           )}
         </GlassCard>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section variants={staggerItem}>
         <GlassCard className="!p-5" glow={isFocusActive} hover={false}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-semibold text-foreground font-sans uppercase tracking-wider flex items-center gap-2">
@@ -331,7 +333,7 @@ export const DashboardMobile = () => {
             Open focus chamber →
           </button>
         </GlassCard>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   );
 };

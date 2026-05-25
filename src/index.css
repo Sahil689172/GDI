@@ -143,10 +143,6 @@
     z-index: 1;
   }
 
-  .liquid-glass:hover::before {
-    left: 100%;
-  }
-
   .bg-tech-grid {
     background-size: 40px 40px;
     background-image:

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { SPRING } from '../animations/motion';
 
 export const ThemeToggle = ({ className = '' }) => {
   const { isDark, toggleTheme } = useTheme();
@@ -22,7 +23,7 @@ export const ThemeToggle = ({ className = '' }) => {
       <motion.div
         className="absolute w-6 h-6 rounded-full bg-foreground shadow-glass-glow flex items-center justify-center"
         animate={{ x: isDark ? 0 : 24 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+        transition={SPRING.snappy}
       >
         {isDark ? (
           <Moon className="w-3 h-3 text-background" strokeWidth={2.5} />

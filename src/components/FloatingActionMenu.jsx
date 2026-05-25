@@ -17,6 +17,14 @@ import {
 import { GlassCard } from '../ui/GlassCard';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
+import {
+  fabMenuVariants,
+  fabItemVariants,
+  fabTriggerVariants,
+  overlayVariants,
+  modalVariants,
+} from '../animations/microinteractions';
+import { SPRING } from '../animations/motion';
 
 const ACTION_ITEMS = [
   { id: 'task', label: 'Add Task', icon: CheckSquare, desc: 'New action item' },
@@ -107,27 +115,6 @@ export const FloatingActionMenu = () => {
     setNoteText('');
   };
 
-  const menuVariants = {
-    closed: { scale: 0, opacity: 0, y: 20 },
-    open: {
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 420,
-        damping: 28,
-        staggerChildren: 0.06,
-        delayChildren: 0.04,
-      },
-    },
-  };
-
-  const itemVariants = {
-    closed: { scale: 0.8, opacity: 0, y: 12 },
-    open: { scale: 1, opacity: 1, y: 0, transition: { type: 'spring', stiffness: 450, damping: 22 } },
-  };
-
   return (
     <>
       <div
@@ -139,7 +126,7 @@ export const FloatingActionMenu = () => {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              variants={menuVariants}
+              variants={fabMenuVariants}
               initial="closed"
               animate="open"
               exit="closed"
@@ -151,10 +138,10 @@ export const FloatingActionMenu = () => {
                   <motion.button
                     key={item.id}
                     type="button"
-                    variants={itemVariants}
+                    variants={fabItemVariants}
                     onClick={() => handleAction(item.id)}
-                    whileHover={{ scale: 1.03, x: -4 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ x: -3, transition: SPRING.soft }}
+                    whileTap={{ scale: 0.98 }}
                     className="flex items-center gap-3 liquid-glass rounded-xl px-3.5 py-2.5 border border-border shadow-glass hover:border-border-strong transition-all text-left"
                   >
                     <div className="flex flex-col items-end text-right">
@@ -176,15 +163,17 @@ export const FloatingActionMenu = () => {
         <motion.button
           type="button"
           onClick={toggleMenu}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING.snappy}
           className="pointer-events-auto w-12 h-12 md:w-14 md:h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-glass-glow border border-border-strong outline-none touch-manipulation"
           aria-label={isOpen ? 'Close menu' : 'Quick actions'}
           aria-expanded={isOpen}
         >
           <motion.div
-            animate={{ rotate: isOpen ? 45 : 0 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+            variants={fabTriggerVariants}
+            animate={isOpen ? 'open' : 'closed'}
+            initial={false}
           >
             <Plus className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
           </motion.div>
@@ -195,17 +184,18 @@ export const FloatingActionMenu = () => {
         {activeModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              variants={overlayVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               onClick={() => setActiveModal(null)}
               className="absolute inset-0 bg-overlay backdrop-blur-xl"
             />
             <motion.div
-              initial={{ scale: 0.94, y: 12, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.94, y: 12, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               className="w-full max-w-md relative z-10"
               onClick={(e) => e.stopPropagation()}
             >

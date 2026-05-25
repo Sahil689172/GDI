@@ -11,6 +11,7 @@ import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingScreen } from './components/LoadingScreen';
 import { AppRoutes } from './routes/AppRoutes';
+import { DURATION, EASE } from './animations/motion';
 
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -23,9 +24,9 @@ const AppContent = () => {
 
       {!isLoading && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: DURATION.cinematic, ease: EASE.out }}
           className="min-h-screen"
         >
           <AppRoutes />
