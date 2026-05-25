@@ -236,7 +236,7 @@ export const Dashboard = () => {
       </header>
 
       {/* 2. Productivity Overview Cards (Liquid Glass Grid) */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8 min-w-0">
         
         {/* Metric 1: Today's Progress */}
         <GlassCard className="flex flex-col justify-between min-h-[110px]" glow={progressPercentage > 75}>
@@ -318,7 +318,7 @@ export const Dashboard = () => {
       </section>
 
       {/* 3. Main Dashboard Workspace Layout (Split Layout) */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 min-w-0">
         
         {/* Left Column: Deadlines, Quick Actions (Span 2) */}
         <div className="xl:col-span-2 flex flex-col gap-6">

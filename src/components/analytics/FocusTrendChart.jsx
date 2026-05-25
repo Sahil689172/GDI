@@ -22,7 +22,7 @@ export const FocusTrendChart = ({ data }) => {
           Focus Hours Trend
         </h3>
       </div>
-      <div className="h-44 w-full">
+      <div className="chart-responsive w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={chartMargins}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} opacity={0.4} vertical={false} />

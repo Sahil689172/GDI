@@ -11,6 +11,8 @@ export const useApp = () => {
 export const AppProvider = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quickAction, setQuickAction] = useState(null);
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => !prev);
@@ -19,19 +21,38 @@ export const AppProvider = ({ children }) => {
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
+  const openMobileMenu = useCallback(() => setMobileMenuOpen(true), []);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const toggleMobileMenu = useCallback(() => setMobileMenuOpen((p) => !p), []);
+
+  const triggerQuickAction = useCallback((type) => {
+    setQuickAction({ type, at: Date.now() });
+  }, []);
+
+  const clearQuickAction = useCallback(() => setQuickAction(null), []);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const tag = e.target?.tagName?.toLowerCase();
+      const inField = tag === 'input' || tag === 'textarea' || e.target?.isContentEditable;
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setSearchOpen((prev) => !prev);
+        return;
       }
-      if (e.key === 'Escape') {
-        setSearchOpen(false);
+
+      if (searchOpen) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !inField) {
+        e.preventDefault();
+        setQuickAction({ type: 'task', at: Date.now() });
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [searchOpen]);
 
   const value = {
     sidebarCollapsed,
@@ -41,6 +62,13 @@ export const AppProvider = ({ children }) => {
     setSearchOpen,
     openSearch,
     closeSearch,
+    quickAction,
+    triggerQuickAction,
+    clearQuickAction,
+    mobileMenuOpen,
+    openMobileMenu,
+    closeMobileMenu,
+    toggleMobileMenu,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

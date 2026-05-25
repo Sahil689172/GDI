@@ -14,7 +14,7 @@ export const AnimatedTimer = ({ seconds, active }) => {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className={`text-5xl sm:text-6xl md:text-7xl font-bold font-mono tracking-[0.12em] tabular-nums ${
+          className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-mono tracking-[0.08em] sm:tracking-[0.12em] tabular-nums ${
             active ? 'text-foreground text-glow' : 'text-foreground'
           }`}
         >

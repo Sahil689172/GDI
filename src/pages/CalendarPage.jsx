@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useWindowSize } from '../hooks/useWindowSize';
 import { motion } from 'framer-motion';
 import { addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { Link2 } from 'lucide-react';
 import { useCalendar } from '../context/CalendarContext';
+import { useApp } from '../context/AppContext';
 import { PageHeader } from '../ui/PageHeader';
 import { GlassCard } from '../ui/GlassCard';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -39,6 +41,16 @@ export const CalendarPage = () => {
   const [defaultSlot, setDefaultSlot] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [dayEventsPanel, setDayEventsPanel] = useState(null);
+  const { quickAction, clearQuickAction } = useApp();
+
+  useEffect(() => {
+    if (quickAction?.type === 'event') {
+      setEditEvent(null);
+      setDefaultSlot(null);
+      setEventModalOpen(true);
+      clearQuickAction();
+    }
+  }, [quickAction, clearQuickAction]);
 
   const rangeStart = useMemo(() => startOfMonth(addMonths(date, -1)), [date]);
   const rangeEnd = useMemo(() => endOfMonth(addMonths(date, 2)), [date]);
@@ -134,7 +146,22 @@ export const CalendarPage = () => {
     setEditEvent(null);
   }, [deleteConfirm, deleteEvent]);
 
-  const calendarHeight = view === 'month' ? 520 : view === 'week' ? 600 : 640;
+  const { width } = useWindowSize();
+  const calendarHeight = useMemo(() => {
+    if (width < 640) {
+      if (view === 'month') return 360;
+      if (view === 'week') return 400;
+      return 440;
+    }
+    if (width < 1024) {
+      if (view === 'month') return 460;
+      if (view === 'week') return 520;
+      return 560;
+    }
+    if (view === 'month') return 520;
+    if (view === 'week') return 600;
+    return 640;
+  }, [width, view]);
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
@@ -155,7 +182,7 @@ export const CalendarPage = () => {
         </button>
       </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_minmax(0,300px)] gap-3 sm:gap-4 min-w-0">
         <motion.div variants={staggerItem} className="min-w-0">
           <GlassCard className="!p-4 md:!p-5" glow>
             <CalendarToolbar

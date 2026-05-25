@@ -4,12 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { GlobalSearch } from '../components/GlobalSearch';
 import { FloatingActionMenu } from '../components/FloatingActionMenu';
+import { MobileDrawer } from '../components/layout/MobileDrawer';
 import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { Topbar } from './Topbar';
 import { PageTransition } from './PageTransition';
 import { SandglassLoader } from '../ui/SandglassLoader';
 import { useApp } from '../context/AppContext';
+import { useIsMobileLayout } from '../hooks/useMediaQuery';
 
 const RouteFallback = () => (
   <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
@@ -27,22 +29,32 @@ const RouteFallback = () => (
 export const AppLayout = () => {
   const { sidebarCollapsed } = useApp();
   const location = useLocation();
+  const isMobile = useIsMobileLayout();
 
-  const mainPadding = sidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-64';
+  const desktopPad = sidebarCollapsed ? 'md:pl-[72px]' : 'md:pl-64';
 
   return (
-    <div className="min-h-screen relative w-full overflow-x-hidden text-foreground bg-surface">
+    <div className="mobile-app-shell min-h-[100dvh] w-full overflow-x-hidden text-foreground bg-background touch-manipulation">
       <AnimatedBackground />
       <GlobalSearch />
+      <MobileDrawer />
 
-      <div className={`relative z-10 flex w-full min-h-screen ${mainPadding} transition-[padding] duration-300`}>
-        <Sidebar />
-        <MobileNav />
+      {!isMobile && <Sidebar />}
+      <MobileNav />
 
-        <div className="flex-1 flex flex-col min-h-screen w-full min-w-0">
-          <Topbar />
+      <div
+        className={`mobile-main-column relative z-10 flex w-full min-w-0 min-h-[100dvh] flex-col ${desktopPad}`}
+      >
+        <Topbar />
 
-          <main className="flex-1 px-4 md:px-8 pb-28 md:pb-8 overflow-y-auto select-none">
+        <main className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto scroll-smooth-touch">
+          <div
+            className={`w-full max-w-full mx-auto ${
+              isMobile
+                ? 'px-4 pt-2 pb-[calc(var(--mobile-nav-total)+var(--fab-clearance))]'
+                : 'page-container px-4 md:px-8 pt-2 pb-8'
+            }`}
+          >
             <AnimatePresence mode="wait">
               <Suspense key={location.pathname} fallback={<RouteFallback />}>
                 <PageTransition>
@@ -50,8 +62,8 @@ export const AppLayout = () => {
                 </PageTransition>
               </Suspense>
             </AnimatePresence>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
 
       <FloatingActionMenu />

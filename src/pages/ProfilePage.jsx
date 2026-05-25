@@ -65,7 +65,7 @@ export const ProfilePage = () => {
             </motion.div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,1.2fr)] gap-6 max-w-5xl">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,1.2fr)] gap-4 sm:gap-6 max-w-5xl min-w-0">
             <motion.div variants={staggerItem} className="lg:sticky lg:top-24 lg:self-start">
               <SettingsTabs active={activeTab} onChange={setActiveTab} />
             </motion.div>

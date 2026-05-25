@@ -1,45 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDashboard } from '../context/DashboardContext';
-import { 
-  Plus, 
-  CheckSquare, 
-  Target, 
-  FileText, 
-  X, 
-  ChevronRight, 
-  Send 
+import { useApp } from '../context/AppContext';
+import {
+  Plus,
+  CheckSquare,
+  Target,
+  Calendar,
+  Flame,
+  FileText,
+  X,
+  ChevronRight,
+  Send,
 } from 'lucide-react';
 import { GlassCard } from '../ui/GlassCard';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { useIsMobileLayout } from '../hooks/useMediaQuery';
+
+const ACTION_ITEMS = [
+  { id: 'task', label: 'Add Task', icon: CheckSquare, desc: 'New action item' },
+  { id: 'goal', label: 'Add Goal', icon: Target, desc: 'Set objective' },
+  { id: 'event', label: 'Add Event', icon: Calendar, desc: 'Schedule block' },
+  { id: 'focus', label: 'Start Focus', icon: Flame, desc: 'Begin session' },
+  { id: 'note', label: 'Quick Note', icon: FileText, desc: 'Capture thought' },
+];
+
+const HIDE_ON_PATHS = ['/calendar', '/focus'];
 
 export const FloatingActionMenu = () => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const isMobile = useIsMobileLayout();
   const { addTask, addGoal, addNote, notes, deleteNote } = useDashboard();
+  const { quickAction, clearQuickAction } = useApp();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeModal, setActiveModal] = useState(null); // 'task', 'goal', 'note', or null
+  const [activeModal, setActiveModal] = useState(null);
 
-  // Form states
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState('Medium');
-  const [taskDeadline, setTaskDeadline] = useState('Today, 6:00 PM');
-  
   const [goalTitle, setGoalTitle] = useState('');
-  const [goalTarget, setGoalTarget] = useState('100%');
-  
+  const [goalTarget, setGoalTarget] = useState('30 Days');
   const [noteText, setNoteText] = useState('');
   const [noteToDelete, setNoteToDelete] = useState(null);
 
-  // Expand menu toggle
-  const toggleMenu = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    if (!quickAction?.type) return;
+    const { type } = quickAction;
+    if (type === 'event') {
+      navigate('/calendar');
+      clearQuickAction();
+      return;
+    }
+    if (type === 'focus') {
+      navigate('/focus');
+      clearQuickAction();
+      return;
+    }
+    if (type === 'task' || type === 'goal' || type === 'note') {
+      setActiveModal(type);
+      setIsOpen(false);
+      clearQuickAction();
+    }
+  }, [quickAction, navigate, clearQuickAction]);
 
-  // Form submissions
+  if (HIDE_ON_PATHS.includes(pathname)) return null;
+  if (isMobile && pathname === '/') return null;
+
+  const toggleMenu = () => setIsOpen((o) => !o);
+
+  const handleAction = (id) => {
+    if (id === 'event') {
+      navigate('/calendar');
+      setIsOpen(false);
+      return;
+    }
+    if (id === 'focus') {
+      navigate('/focus');
+      setIsOpen(false);
+      return;
+    }
+    setActiveModal(id);
+    setIsOpen(false);
+  };
+
   const handleTaskSubmit = (e) => {
     e.preventDefault();
     if (!taskTitle.trim()) return;
     addTask(taskTitle, taskPriority);
     setTaskTitle('');
     setActiveModal(null);
-    setIsOpen(false);
   };
 
   const handleGoalSubmit = (e) => {
@@ -48,7 +98,6 @@ export const FloatingActionMenu = () => {
     addGoal(goalTitle, goalTarget);
     setGoalTitle('');
     setActiveModal(null);
-    setIsOpen(false);
   };
 
   const handleNoteSubmit = (e) => {
@@ -58,40 +107,35 @@ export const FloatingActionMenu = () => {
     setNoteText('');
   };
 
-  // Stagger configurations
   const menuVariants = {
-    closed: { scale: 0, opacity: 0, y: 30 },
-    open: { 
-      scale: 1, 
-      opacity: 1, 
+    closed: { scale: 0, opacity: 0, y: 20 },
+    open: {
+      scale: 1,
+      opacity: 1,
       y: 0,
-      transition: { 
-        type: "spring", 
-        stiffness: 400, 
-        damping: 25, 
-        staggerChildren: 0.08, 
-        delayChildren: 0.05 
-      } 
-    }
+      transition: {
+        type: 'spring',
+        stiffness: 420,
+        damping: 28,
+        staggerChildren: 0.06,
+        delayChildren: 0.04,
+      },
+    },
   };
 
   const itemVariants = {
-    closed: { scale: 0.7, opacity: 0, y: 15 },
-    open: { scale: 1, opacity: 1, y: 0, transition: { type: "spring", stiffness: 450, damping: 20 } }
+    closed: { scale: 0.8, opacity: 0, y: 12 },
+    open: { scale: 1, opacity: 1, y: 0, transition: { type: 'spring', stiffness: 450, damping: 22 } },
   };
-
-  const actionItems = [
-    { id: 'task', label: 'Add Task', icon: CheckSquare, desc: 'Create a new action item' },
-    { id: 'goal', label: 'Add Goal', icon: Target, desc: 'Set a new benchmark' },
-    { id: 'note', label: 'Quick Note', icon: FileText, desc: 'Capture rapid thoughts' },
-  ];
 
   return (
     <>
-      {/* Floating Action Button (FAB) and Menu Container */}
-      <div className="fixed bottom-20 md:bottom-8 right-6 z-40 flex flex-col items-end gap-3 select-none">
-        
-        {/* Expanded Sub-menu Actions */}
+      <div
+        className="fixed right-4 md:right-6 z-[35] md:z-40 flex flex-col items-end gap-2 select-none touch-manipulation md:bottom-8"
+        style={{
+          bottom: 'max(calc(var(--mobile-nav-total) + 0.75rem), 5.5rem)',
+        }}
+      >
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -99,27 +143,27 @@ export const FloatingActionMenu = () => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="flex flex-col items-end gap-2.5 mb-1"
+              className="flex flex-col items-end gap-2 mb-1"
             >
-              {actionItems.map((item) => {
+              {ACTION_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
                   <motion.button
                     key={item.id}
+                    type="button"
                     variants={itemVariants}
-                    onClick={() => {
-                      setActiveModal(item.id);
-                      setIsOpen(false);
-                    }}
-                    whileHover={{ scale: 1.05, x: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-3 bg-background/90 backdrop-blur-md border border-border rounded-xl px-4 py-2.5 shadow-glass-glow hover:border-border-strong transition-all text-left"
+                    onClick={() => handleAction(item.id)}
+                    whileHover={{ scale: 1.03, x: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-3 liquid-glass rounded-xl px-3.5 py-2.5 border border-border shadow-glass hover:border-border-strong transition-all text-left"
                   >
                     <div className="flex flex-col items-end text-right">
-                      <span className="text-xs font-semibold text-foreground font-sans">{item.label}</span>
+                      <span className="text-xs font-semibold text-foreground font-sans">
+                        {item.label}
+                      </span>
                       <span className="text-[9px] font-mono text-muted">{item.desc}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-elevated border border-border flex items-center justify-center text-muted group-hover:text-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-elevated border border-border flex items-center justify-center">
                       <Icon className="w-4 h-4 text-foreground" />
                     </div>
                   </motion.button>
@@ -129,225 +173,177 @@ export const FloatingActionMenu = () => {
           )}
         </AnimatePresence>
 
-        {/* Master Action Toggle FAB */}
         <motion.button
+          type="button"
           onClick={toggleMenu}
-          whileHover={{ scale: 1.08, boxShadow: 'var(--shadow-glass)' }}
-          whileTap={{ scale: 0.93 }}
-          className="w-14 h-14 rounded-full bg-elevated border border-border-strong flex items-center justify-center text-foreground shadow-glass-glow outline-none cursor-pointer"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-foreground text-background flex items-center justify-center shadow-glass-glow border border-border-strong outline-none"
+          aria-label={isOpen ? 'Close menu' : 'Quick actions'}
+          aria-expanded={isOpen}
         >
           <motion.div
-            animate={{ rotate: isOpen ? 135 : 0 }}
-            transition={{ type: "spring", stiffness: 350, damping: 20 }}
+            animate={{ rotate: isOpen ? 45 : 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 22 }}
           >
-            <Plus className="w-6 h-6 text-foreground" strokeWidth="2.5" />
+            <Plus className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
           </motion.div>
         </motion.button>
       </div>
 
-      {/* Action Modals */}
       <AnimatePresence>
         {activeModal && (
-          <div className="fixed inset-0 w-full h-full z-50 flex items-center justify-center p-4">
-            
-            {/* Modal Glass Backdrop */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveModal(null)}
-              className="absolute inset-0 bg-overlay backdrop-blur-md"
+              className="absolute inset-0 bg-overlay backdrop-blur-xl"
             />
-
-            {/* Modal Panel Container */}
             <motion.div
-              initial={{ scale: 0.9, y: 15, opacity: 0 }}
+              initial={{ scale: 0.94, y: 12, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 15, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              exit={{ scale: 0.94, y: 12, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className="w-full max-w-md relative z-10"
+              onClick={(e) => e.stopPropagation()}
             >
-              <GlassCard glow={true} className="border-border-strong shadow-glass-glow !p-0">
-                
-                {/* Header */}
+              <GlassCard glow className="border-border-strong shadow-glass-glow !p-0">
                 <div className="flex items-center justify-between p-5 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    {activeModal === 'task' && <CheckSquare className="w-4 h-4 text-muted" />}
-                    {activeModal === 'goal' && <Target className="w-4 h-4 text-muted" />}
-                    {activeModal === 'note' && <FileText className="w-4 h-4 text-muted" />}
-                    <h2 className="text-sm font-semibold tracking-wider uppercase text-foreground font-sans">
-                      {activeModal === 'task' && 'New Priority Task'}
-                      {activeModal === 'goal' && 'Define Focus Goal'}
-                      {activeModal === 'note' && 'Scratch Workspace'}
-                    </h2>
-                  </div>
-                  <button 
+                  <h2 className="text-sm font-semibold tracking-wider uppercase text-foreground font-sans">
+                    {activeModal === 'task' && 'New Task'}
+                    {activeModal === 'goal' && 'New Goal'}
+                    {activeModal === 'note' && 'Quick Note'}
+                  </h2>
+                  <button
+                    type="button"
                     onClick={() => setActiveModal(null)}
-                    className="p-1 rounded-lg bg-elevated border border-border text-muted hover:text-foreground hover:border-border-strong transition-colors"
+                    className="p-1.5 rounded-lg text-subtle hover:text-foreground transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Form fields depending on active modal */}
                 {activeModal === 'task' && (
-                  <form onSubmit={handleTaskSubmit} className="p-5 flex flex-col gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                        Task Heading
+                  <form onSubmit={handleTaskSubmit} className="p-5 space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-muted uppercase tracking-wider mb-1.5">
+                        Title
                       </label>
                       <input
-                        type="text"
-                        required
                         value={taskTitle}
                         onChange={(e) => setTaskTitle(e.target.value)}
-                        placeholder="e.g. Design Linear Glass Effects"
-                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
+                        className="w-full input-field text-sm"
+                        placeholder="What needs doing?"
                         autoFocus
+                        required
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                          Priority Matrix
-                        </label>
-                        <select
-                          value={taskPriority}
-                          onChange={(e) => setTaskPriority(e.target.value)}
-                          className="bg-surface border border-border rounded-xl px-3 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
-                        >
-                          <option value="High" className="bg-surface text-foreground">High</option>
-                          <option value="Medium" className="bg-surface text-foreground">Medium</option>
-                          <option value="Low" className="bg-surface text-foreground">Low</option>
-                        </select>
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                          Deadline Limit
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={taskDeadline}
-                          onChange={(e) => setTaskDeadline(e.target.value)}
-                          placeholder="e.g. Today, 5:00 PM"
-                          className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-muted uppercase tracking-wider mb-1.5">
+                        Priority
+                      </label>
+                      <select
+                        value={taskPriority}
+                        onChange={(e) => setTaskPriority(e.target.value)}
+                        className="w-full input-field text-xs"
+                      >
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                      </select>
                     </div>
-
                     <button
                       type="submit"
-                      className="mt-2 w-full py-3 bg-elevated border border-border hover:shadow-glass-glow hover:border-border-strong transition-all border border-border rounded-xl text-xs font-semibold tracking-wider uppercase text-foreground flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3 rounded-xl bg-foreground text-background text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2"
                     >
-                      Commit Task
-                      <ChevronRight className="w-4 h-4 text-muted" />
+                      Add Task
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </form>
                 )}
 
                 {activeModal === 'goal' && (
-                  <form onSubmit={handleGoalSubmit} className="p-5 flex flex-col gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                        Goal Objective
+                  <form onSubmit={handleGoalSubmit} className="p-5 space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-mono text-muted uppercase tracking-wider mb-1.5">
+                        Goal
                       </label>
                       <input
-                        type="text"
-                        required
                         value={goalTitle}
                         onChange={(e) => setGoalTitle(e.target.value)}
-                        placeholder="e.g. Master Framer Motion Physics"
-                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
+                        className="w-full input-field text-sm"
+                        placeholder="What are you building?"
                         autoFocus
+                        required
                       />
                     </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest">
-                        Target Boundary
+                    <div>
+                      <label className="block text-[10px] font-mono text-muted uppercase tracking-wider mb-1.5">
+                        Target
                       </label>
                       <input
-                        type="text"
-                        required
                         value={goalTarget}
                         onChange={(e) => setGoalTarget(e.target.value)}
-                        placeholder="e.g. 30 Days or 100%"
-                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-border-strong transition-colors font-sans w-full"
+                        className="w-full input-field text-xs"
+                        placeholder="30 Days"
                       />
                     </div>
-
                     <button
                       type="submit"
-                      className="mt-2 w-full py-3 bg-elevated border border-border hover:shadow-glass-glow hover:border-border-strong transition-all border border-border rounded-xl text-xs font-semibold tracking-wider uppercase text-foreground flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3 rounded-xl bg-foreground text-background text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2"
                     >
-                      Launch Goal
-                      <ChevronRight className="w-4 h-4 text-muted" />
+                      Add Goal
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </form>
                 )}
 
                 {activeModal === 'note' && (
-                  <div className="p-5 flex flex-col gap-4">
-                    {/* Add note input form */}
-                    <form onSubmit={handleNoteSubmit} className="flex gap-2.5">
+                  <div className="p-5 space-y-4">
+                    <form onSubmit={handleNoteSubmit} className="flex gap-2">
                       <input
-                        type="text"
-                        required
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
-                        placeholder="Type quick thought and press send..."
-                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-border-strong transition-colors font-sans flex-1"
+                        className="flex-1 input-field text-xs"
+                        placeholder="Type a note..."
                         autoFocus
                       />
                       <button
                         type="submit"
-                        className="w-10 h-10 rounded-xl bg-elevated border border-border text-muted hover:text-foreground hover:border-border-strong flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center shrink-0"
                       >
                         <Send className="w-4 h-4" />
                       </button>
                     </form>
-
-                    {/* Quick note scrollable area */}
-                    <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
-                      <label className="text-[10px] font-mono text-muted uppercase tracking-widest mb-1 block">
-                        Saved Notes
-                      </label>
-                      <AnimatePresence mode="popLayout">
+                    <div className="max-h-48 overflow-y-auto space-y-2 no-scrollbar">
                       {notes.length === 0 ? (
-                        <p className="text-[10px] text-subtle text-center font-mono py-4 border border-dashed border-border rounded-xl">
-                          No notes pinned. Add one above!
+                        <p className="text-[10px] text-muted text-center py-6 font-sans">
+                          No notes yet
                         </p>
                       ) : (
-                        notes.map(note => (
-                          <motion.div
+                        notes.map((note) => (
+                          <div
                             key={note.id}
-                            layout
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="bg-elevated border border-border hover:border-border rounded-xl p-3 flex justify-between items-start group/note transition-all"
+                            className="p-3 rounded-xl border border-border bg-surface flex justify-between gap-2"
                           >
-                            <div className="flex flex-col gap-1 pr-4">
-                              <p className="text-[11px] text-foreground font-sans leading-relaxed break-all">
+                            <div className="min-w-0">
+                              <p className="text-[11px] text-foreground font-sans break-words">
                                 {note.text}
                               </p>
-                              <span className="text-[8px] font-mono text-muted">
-                                {note.time}
-                              </span>
+                              <span className="text-[8px] font-mono text-muted">{note.time}</span>
                             </div>
                             <button
+                              type="button"
                               onClick={() => setNoteToDelete(note)}
-                              className="text-[9px] font-mono text-subtle hover:text-foreground transition-colors p-1"
+                              className="text-[9px] font-mono text-muted hover:text-foreground shrink-0"
                             >
                               Clear
                             </button>
-                          </motion.div>
+                          </div>
                         ))
                       )}
-                      </AnimatePresence>
                     </div>
                   </div>
                 )}
@@ -360,13 +356,12 @@ export const FloatingActionMenu = () => {
       <ConfirmModal
         open={!!noteToDelete}
         onClose={() => setNoteToDelete(null)}
-        onConfirm={() => noteToDelete && deleteNote(noteToDelete.id)}
+        onConfirm={() => {
+          if (noteToDelete) deleteNote(noteToDelete.id);
+          setNoteToDelete(null);
+        }}
         title="Delete Note"
-        message={
-          noteToDelete
-            ? `Remove this note? "${noteToDelete.text.slice(0, 60)}${noteToDelete.text.length > 60 ? '...' : ''}"`
-            : ''
-        }
+        message="Remove this note?"
       />
     </>
   );

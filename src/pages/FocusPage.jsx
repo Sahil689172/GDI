@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFocus } from '../context/FocusContext';
+import { useApp } from '../context/AppContext';
+import { useWindowSize } from '../hooks/useWindowSize';
 import { PageHeader } from '../ui/PageHeader';
 import { GlassCard } from '../ui/GlassCard';
 import { staggerContainer, staggerItem } from '../animations/pageTransitions';
@@ -39,6 +41,17 @@ export const FocusPage = () => {
     showComplete,
     lastCompleted,
   } = useFocus();
+  const { quickAction, clearQuickAction } = useApp();
+
+  useEffect(() => {
+    if (quickAction?.type === 'focus' && status === 'idle') {
+      start();
+      clearQuickAction();
+    }
+  }, [quickAction, status, start, clearQuickAction]);
+
+  const { width } = useWindowSize();
+  const ringSize = width < 380 ? 200 : width < 640 ? 220 : width < 1024 ? 240 : 260;
 
   const active = status === 'running';
   const timerDisabled = status === 'running' || status === 'paused';
@@ -59,7 +72,7 @@ export const FocusPage = () => {
           <FocusStatsCards analytics={analytics} />
         </motion.div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_minmax(0,320px)] gap-3 sm:gap-4 min-w-0">
           <motion.div variants={staggerItem} className="space-y-4">
             <GlassCard className="!p-6 md:!p-8 relative overflow-hidden" glow={active}>
               <FocusAmbientBackground intense={active} />
@@ -79,7 +92,7 @@ export const FocusPage = () => {
                   </span>
                   <FocusProgressRing
                     progress={progress}
-                    size={260}
+                    size={ringSize}
                     active={active}
                   >
                     <AnimatedTimer seconds={secondsRemaining} active={active} />

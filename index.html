@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
     
     <!-- SEO Meta Tags -->
     <title>Gotta-do-it | Premium Futuristic Productivity Dashboard</title>
@@ -27,6 +29,13 @@
         margin: 0;
         padding: 0;
         overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
       }
       html[data-theme='dark'], html[data-theme='dark'] body {
         background-color: #000000;

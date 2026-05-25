@@ -22,7 +22,7 @@ export const ProductivityChart = ({ data }) => {
           Daily Productivity
         </h3>
       </div>
-      <div className="h-44 w-full">
+      <div className="chart-responsive w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={chartMargins}>
             <defs>

@@ -25,7 +25,7 @@ export const ProfileDashboard = () => {
   );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 min-w-0">
       {stats.map((s, i) => (
         <ProfileStatCard key={s.label} {...s} delay={i * 0.05} />
       ))}

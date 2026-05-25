@@ -5,6 +5,7 @@ import './index.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 import './styles/calendar.css'
+import './styles/responsive.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

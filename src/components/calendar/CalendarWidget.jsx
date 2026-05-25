@@ -54,7 +54,7 @@ export const CalendarWidget = ({
   );
 
   return (
-    <div className="gdi-calendar" style={{ height }}>
+    <div className="gdi-calendar w-full min-w-0 overflow-hidden" style={{ height }}>
       <DnDCalendar
         localizer={localizer}
         events={events}

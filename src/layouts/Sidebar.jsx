@@ -71,7 +71,7 @@ export const Sidebar = () => {
                 to={item.path}
                 end={item.path === '/'}
                 className={`
-                  relative flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 group
+                  relative flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 group touch-manipulation
                   ${sidebarCollapsed ? 'justify-center' : ''}
                   ${isActive ? 'text-foreground' : 'text-muted hover:text-foreground hover:shadow-glass-glow'}
                 `}

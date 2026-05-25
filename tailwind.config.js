@@ -3,6 +3,12 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      maxWidth: {
+        content: '1600px',
+      },
+      spacing: {
+        'nav-mobile': 'var(--nav-mobile-h)',
+      },
       colors: {
         black: '#000000',
         white: '#ffffff',

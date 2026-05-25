@@ -13,7 +13,8 @@ export const FocusFAB = ({ onClick, hidden }) => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40 w-12 h-12 rounded-full bg-foreground text-background shadow-glass-glow flex items-center justify-center border border-border-strong"
+      className="fixed right-4 md:right-8 z-40 w-12 h-12 rounded-full bg-foreground text-background shadow-glass-glow flex items-center justify-center border border-border-strong touch-manipulation md:bottom-8"
+      style={{ bottom: 'max(5.25rem, calc(var(--nav-mobile-h) + 0.85rem))' }}
       aria-label="Quick start focus"
     >
       <Zap className="w-5 h-5" />
