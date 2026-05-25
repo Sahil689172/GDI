@@ -22,6 +22,7 @@ export const ThemeToggle = ({ className = '' }) => {
     >
       <motion.div
         className="absolute w-6 h-6 rounded-full bg-foreground shadow-glass-glow flex items-center justify-center"
+        style={{ transformOrigin: '50% 50%' }}
         animate={{ x: isDark ? 0 : 24 }}
         transition={SPRING.snappy}
       >

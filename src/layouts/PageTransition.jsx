@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { pageVariants, pageVariantsReduced } from '../animations/microinteractions';
 
-export const PageTransition = ({ children }) => {
+export const PageTransition = memo(function PageTransition({ children }) {
   const location = useLocation();
   const reduced = useReducedMotion();
   const variants = reduced ? pageVariantsReduced : pageVariants;
@@ -16,9 +16,9 @@ export const PageTransition = ({ children }) => {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="w-full will-change-[opacity,transform]"
+      className={`w-full ${reduced ? '' : 'gpu-promote'}`}
     >
       {children}
     </motion.div>
   );
-};
+});

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 const AppContext = createContext();
 
@@ -54,22 +54,38 @@ export const AppProvider = ({ children }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [searchOpen]);
 
-  const value = {
-    sidebarCollapsed,
-    setSidebarCollapsed,
-    toggleSidebar,
-    searchOpen,
-    setSearchOpen,
-    openSearch,
-    closeSearch,
-    quickAction,
-    triggerQuickAction,
-    clearQuickAction,
-    mobileMenuOpen,
-    openMobileMenu,
-    closeMobileMenu,
-    toggleMobileMenu,
-  };
+  const value = useMemo(
+    () => ({
+      sidebarCollapsed,
+      setSidebarCollapsed,
+      toggleSidebar,
+      searchOpen,
+      setSearchOpen,
+      openSearch,
+      closeSearch,
+      quickAction,
+      triggerQuickAction,
+      clearQuickAction,
+      mobileMenuOpen,
+      openMobileMenu,
+      closeMobileMenu,
+      toggleMobileMenu,
+    }),
+    [
+      sidebarCollapsed,
+      searchOpen,
+      quickAction,
+      mobileMenuOpen,
+      toggleSidebar,
+      openSearch,
+      closeSearch,
+      triggerQuickAction,
+      clearQuickAction,
+      openMobileMenu,
+      closeMobileMenu,
+      toggleMobileMenu,
+    ]
+  );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

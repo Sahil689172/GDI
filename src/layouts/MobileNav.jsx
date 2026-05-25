@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { NAV_ITEMS } from '../routes/navigation';
 import { navIndicatorTransition } from '../animations/microinteractions';
+import { prefetchOnIntent } from '../utils/prefetchRoute';
 
 const PRIMARY_PATHS = ['/', '/tasks', '/calendar', '/focus'];
 
-export const MobileNav = () => {
+export const MobileNav = memo(function MobileNav() {
   const location = useLocation();
   const { openMobileMenu, closeMobileMenu, mobileMenuOpen } = useApp();
 
@@ -37,6 +38,8 @@ export const MobileNav = () => {
               to={item.path}
               end={item.path === '/'}
               onClick={handleNav}
+              onMouseEnter={prefetchOnIntent(item.path)}
+              onFocus={prefetchOnIntent(item.path)}
               className={`relative flex flex-1 flex-col items-center justify-center gap-1 min-h-[56px] max-w-[72px] rounded-2xl transition-colors touch-manipulation active:scale-[0.97] ${
                 isActive ? 'text-foreground' : 'text-muted'
               }`}
@@ -88,4 +91,4 @@ export const MobileNav = () => {
       </div>
     </nav>
   );
-};
+});

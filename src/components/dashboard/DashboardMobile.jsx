@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { staggerContainer, staggerItem } from '../../animations/microinteractions';
-import { useDashboard } from '../../context/DashboardContext';
+import { useDashboard, useDashboardFocusTick } from '../../context/DashboardContext';
 import { GlassCard } from '../../ui/GlassCard';
 import {
   Play,
@@ -44,8 +44,6 @@ export const DashboardMobile = () => {
     addTask,
     goals,
     isFocusActive,
-    focusTimeLeft,
-    focusSessionTotal,
     startFocus,
     stopFocus,
     resetFocus,
@@ -54,6 +52,7 @@ export const DashboardMobile = () => {
     progressPercentage,
   } = useDashboard();
 
+  const { focusTimeLeft, focusSessionTotal } = useDashboardFocusTick();
   const [greeting, setGreeting] = useState('Good Morning');
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [showQuickAdd, setShowQuickAdd] = useState(false);

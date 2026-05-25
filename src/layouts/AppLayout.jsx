@@ -1,32 +1,42 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy, memo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import { AnimatedBackground } from '../components/AnimatedBackground';
-import { GlobalSearch } from '../components/GlobalSearch';
-import { FloatingActionMenu } from '../components/FloatingActionMenu';
-import { MobileDrawer } from '../components/layout/MobileDrawer';
+import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { Topbar } from './Topbar';
 import { PageTransition } from './PageTransition';
-import { SandglassLoader } from '../ui/SandglassLoader';
+import { MobileDrawer } from '../components/layout/MobileDrawer';
+import { RouteLoader } from '../ui/RouteLoader';
 import { useApp } from '../context/AppContext';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
 
-const RouteFallback = () => (
-  <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
-    <SandglassLoader size="lg" />
-    <motion.p
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="text-[10px] font-mono text-muted uppercase tracking-widest"
-    >
-      Loading stream...
-    </motion.p>
-  </div>
+const AnimatedBackground = lazy(() =>
+  import('../components/AnimatedBackground').then((m) => ({ default: m.AnimatedBackground }))
+);
+const GlobalSearch = lazy(() =>
+  import('../components/GlobalSearch').then((m) => ({ default: m.GlobalSearch }))
+);
+const FloatingActionMenu = lazy(() =>
+  import('../components/FloatingActionMenu').then((m) => ({ default: m.FloatingActionMenu }))
 );
 
-export const AppLayout = () => {
+const DeferredChrome = memo(function DeferredChrome() {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <AnimatedBackground />
+      </Suspense>
+      <Suspense fallback={null}>
+        <GlobalSearch />
+      </Suspense>
+      <Suspense fallback={null}>
+        <FloatingActionMenu />
+      </Suspense>
+    </>
+  );
+});
+
+export const AppLayout = memo(function AppLayout() {
   const { sidebarCollapsed } = useApp();
   const location = useLocation();
   const isMobile = useIsMobileLayout();
@@ -35,8 +45,7 @@ export const AppLayout = () => {
 
   return (
     <div className="mobile-app-shell text-foreground bg-background">
-      <AnimatedBackground />
-      <GlobalSearch />
+      <DeferredChrome />
       <MobileDrawer />
 
       {!isMobile && <Sidebar />}
@@ -47,7 +56,7 @@ export const AppLayout = () => {
       >
         <Topbar />
 
-        <main className="w-full min-w-0 max-w-full">
+        <main id="main-content" className="w-full min-w-0 max-w-full" tabIndex={-1}>
           <div
             className={`w-full max-w-full mx-auto ${
               isMobile
@@ -56,7 +65,7 @@ export const AppLayout = () => {
             }`}
           >
             <AnimatePresence mode="wait">
-              <Suspense key={location.pathname} fallback={<RouteFallback />}>
+              <Suspense fallback={<RouteLoader />}>
                 <PageTransition>
                   <Outlet />
                 </PageTransition>
@@ -65,8 +74,6 @@ export const AppLayout = () => {
           </div>
         </main>
       </div>
-
-      <FloatingActionMenu />
     </div>
   );
-};
+});

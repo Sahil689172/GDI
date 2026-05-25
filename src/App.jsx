@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { DashboardProvider } from './context/DashboardContext';
-import { TasksProvider } from './context/TasksContext';
-import { GoalsProvider } from './context/GoalsContext';
-import { CalendarProvider } from './context/CalendarContext';
-import { FocusProvider } from './context/FocusContext';
-import { ProfileProvider } from './context/ProfileContext';
-import { AppProvider } from './context/AppContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { LoadingScreen } from './components/LoadingScreen';
+import { AppProviders } from './providers/AppProviders';
 import { AppRoutes } from './routes/AppRoutes';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { RouteLoader } from './ui/RouteLoader';
 import { DURATION, EASE } from './animations/motion';
+
+const LoadingScreen = lazy(() =>
+  import('./components/LoadingScreen').then((m) => ({ default: m.LoadingScreen }))
+);
 
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +17,11 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence>
-        {isLoading && <LoadingScreen onFinished={() => setIsLoading(false)} />}
+        {isLoading && (
+          <Suspense fallback={<RouteLoader label="Starting..." />}>
+            <LoadingScreen onFinished={() => setIsLoading(false)} />
+          </Suspense>
+        )}
       </AnimatePresence>
 
       {!isLoading && (
@@ -38,24 +40,12 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-      <AppProvider>
-        <TasksProvider>
-          <GoalsProvider>
-          <CalendarProvider>
-          <FocusProvider>
-          <ProfileProvider>
-          <DashboardProvider>
-            <AppContent />
-          </DashboardProvider>
-          </ProfileProvider>
-          </FocusProvider>
-          </CalendarProvider>
-          </GoalsProvider>
-        </TasksProvider>
-      </AppProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary title="Application error">
+      <BrowserRouter>
+        <AppProviders>
+          <AppContent />
+        </AppProviders>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

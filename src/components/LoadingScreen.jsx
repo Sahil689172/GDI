@@ -112,12 +112,10 @@ export const LoadingScreen = ({ onFinished }) => {
           {/* 2. Top Sand (Drains Downwards) */}
           <div className="absolute inset-0 flex justify-center items-start pt-[19px] z-0">
             <motion.div
-              animate={{ 
-                scaleY: [1, 0.6, 0.3, 0],
-                transformOrigin: 'bottom'
-              }}
+              animate={{ scaleY: [1, 0.6, 0.3, 0] }}
               style={{
-                clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)'
+                transformOrigin: '50% 100%',
+                clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)',
               }}
               key={`top-sand-${rotation}`}
               transition={{ duration: 1.5, ease: "easeInOut" }}
@@ -128,12 +126,10 @@ export const LoadingScreen = ({ onFinished }) => {
           {/* 3. Bottom Sand (Accumulates Upwards) */}
           <div className="absolute inset-0 flex justify-center items-end pb-[19px] z-0">
             <motion.div
-              animate={{ 
-                scaleY: [0, 0.4, 0.8, 1],
-                transformOrigin: 'bottom'
-              }}
+              animate={{ scaleY: [0, 0.4, 0.8, 1] }}
               style={{
-                clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
+                transformOrigin: '50% 100%',
+                clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
               }}
               key={`bottom-sand-${rotation}`}
               transition={{ duration: 1.5, ease: "easeInOut" }}

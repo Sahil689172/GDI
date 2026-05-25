@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { SPRING } from '../animations/motion';
 
-export const AnimatedCounter = ({ value, className = '' }) => {
+export const AnimatedCounter = memo(function AnimatedCounter({ value, className = '' }) {
   const reduced = useReducedMotion();
   const spring = useSpring(0, reduced ? { duration: 0 } : SPRING.counter);
   const display = useTransform(spring, (v) => Math.round(v));
@@ -17,4 +17,4 @@ export const AnimatedCounter = ({ value, className = '' }) => {
   }
 
   return <motion.span className={className}>{display}</motion.span>;
-};
+});

@@ -1,3 +1,7 @@
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import '../styles/calendar.css';
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { motion } from 'framer-motion';

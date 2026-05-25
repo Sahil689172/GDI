@@ -35,6 +35,18 @@
   animation: glass-ambient 6s ease-in-out infinite;
 }
 
+/* Promote animated layers for smoother 60fps transforms */
+.gpu-promote {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpu-promote {
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .liquid-glass.glass-glow-pulse::after {
     animation: none;

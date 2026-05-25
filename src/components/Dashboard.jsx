@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDashboard } from '../context/DashboardContext';
+import { useDashboard, useDashboardFocusTick } from '../context/DashboardContext';
 import { GlassCard } from '../ui/GlassCard';
 import { 
   Play, 
@@ -29,8 +29,6 @@ export const Dashboard = () => {
     addTask,
     goals,
     isFocusActive,
-    focusTimeLeft,
-    focusSessionTotal,
     startFocus,
     stopFocus,
     resetFocus,
@@ -39,6 +37,7 @@ export const Dashboard = () => {
     progressPercentage
   } = useDashboard();
 
+  const { focusTimeLeft, focusSessionTotal } = useDashboardFocusTick();
   const navigate = useNavigate();
 
   // Dynamic greeting based on time of day
@@ -65,7 +64,8 @@ export const Dashboard = () => {
   };
 
   // Focus Timer active ratio
-  const focusRatio = focusTimeLeft / focusSessionTotal;
+  const focusRatio =
+    focusSessionTotal > 0 ? focusTimeLeft / focusSessionTotal : 0;
 
   // Render mini line graph for Focus Hours card
   const renderFocusGraph = () => {
@@ -614,8 +614,8 @@ export const Dashboard = () => {
                   <div 
                     style={{
                       transform: `scaleY(${focusRatio})`,
-                      transformOrigin: 'bottom',
-                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)'
+                      transformOrigin: '50% 100%',
+                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)',
                     }}
                     className="w-[30px] h-[22px] bg-gradient-to-b from-gray-900 to-white/60 transition-all duration-1000"
                   />
@@ -626,8 +626,8 @@ export const Dashboard = () => {
                   <div 
                     style={{
                       transform: `scaleY(${1 - focusRatio})`,
-                      transformOrigin: 'bottom',
-                      clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
+                      transformOrigin: '50% 100%',
+                      clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
                     }}
                     className="w-[30px] h-[22px] bg-gradient-to-t from-gray-900 to-white transition-all duration-1000"
                   />

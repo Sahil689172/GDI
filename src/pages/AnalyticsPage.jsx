@@ -10,9 +10,11 @@ import { PageHeader } from '../ui/PageHeader';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { PeriodFilter } from '../components/analytics/PeriodFilter';
 import { MetricCard } from '../components/analytics/MetricCard';
-import { ProductivityChart } from '../components/analytics/ProductivityChart';
-import { CompletionChart } from '../components/analytics/CompletionChart';
-import { FocusTrendChart } from '../components/analytics/FocusTrendChart';
+import {
+  ProductivityChartLazy,
+  CompletionChartLazy,
+  FocusTrendChartLazy,
+} from '../components/analytics/AnalyticsChartsLazy';
 import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
 import { InsightCards } from '../components/analytics/InsightCards';
 import { FocusAnalyticsSection } from '../components/analytics/FocusAnalyticsSection';
@@ -95,11 +97,11 @@ export const AnalyticsPage = () => {
           <InsightCards insights={data.insights} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ProductivityChart data={data.dailyProductivity} />
-            <CompletionChart data={data.dailyCompletion} />
+            <ProductivityChartLazy data={data.dailyProductivity} />
+            <CompletionChartLazy data={data.dailyCompletion} />
           </div>
 
-          <FocusTrendChart data={data.focusTrend} />
+          <FocusTrendChartLazy data={data.focusTrend} />
 
           <ActivityHeatmap cells={data.heatmap} />
 

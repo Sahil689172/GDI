@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -23,7 +23,7 @@ const QUICK_ACTIONS = [
   { label: 'Focus', icon: Flame, path: '/focus' },
 ];
 
-export const Topbar = () => {
+export const Topbar = memo(function Topbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { openSearch, openMobileMenu } = useApp();
@@ -171,4 +171,4 @@ export const Topbar = () => {
       </motion.div>
     </header>
   );
-};
+});

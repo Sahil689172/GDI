@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -6,8 +6,9 @@ import { useDashboard } from '../context/DashboardContext';
 import { useApp } from '../context/AppContext';
 import { NAV_ITEMS } from '../routes/navigation';
 import { navIndicatorTransition } from '../animations/microinteractions';
+import { prefetchOnIntent } from '../utils/prefetchRoute';
 
-export const Sidebar = () => {
+export const Sidebar = memo(function Sidebar() {
   const { streak } = useDashboard();
   const { sidebarCollapsed, toggleSidebar } = useApp();
   const location = useLocation();
@@ -71,6 +72,8 @@ export const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 end={item.path === '/'}
+                onMouseEnter={prefetchOnIntent(item.path)}
+                onFocus={prefetchOnIntent(item.path)}
                 className={`
                   relative flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-medium tracking-wide transition-all duration-200 group touch-manipulation
                   ${sidebarCollapsed ? 'justify-center' : ''}
@@ -135,4 +138,4 @@ export const Sidebar = () => {
       </div>
     </aside>
   );
-};
+});

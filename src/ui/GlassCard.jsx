@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { cardHoverLift, cardTap } from '../animations/microinteractions';
 import { SPRING } from '../animations/motion';
 
-export const GlassCard = ({
+export const GlassCard = memo(function GlassCard({
   children,
   className = '',
   hover = true,
   glow = false,
   onClick,
   ...props
-}) => {
+}) {
   const reduced = useReducedMotion();
   const canHover =
     !reduced &&
@@ -52,4 +52,4 @@ export const GlassCard = ({
       <div className="relative z-10 w-full min-w-0">{children}</div>
     </motion.div>
   );
-};
+});
