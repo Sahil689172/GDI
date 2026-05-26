@@ -2,13 +2,18 @@ import { Router } from 'express';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import * as focusController from '../controllers/focusController.js';
-import { createSessionRules } from '../validators/focusValidators.js';
+import { startSessionRules, endSessionRules } from '../validators/focusValidators.js';
 
 const router = Router();
 router.use(protect);
 
-router.get('/sessions', focusController.listSessions);
+// Requested contract
+router.get('/', focusController.listSessions);
+router.post('/start', startSessionRules, validate, focusController.start);
+router.post('/end', endSessionRules, validate, focusController.end);
 router.get('/stats', focusController.getStats);
-router.post('/sessions', createSessionRules, validate, focusController.createSession);
+
+// Backwards-compatible (older frontend)
+router.get('/sessions', focusController.listSessions);
 
 export default router;

@@ -45,6 +45,8 @@ export const FocusProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pomodoroCycle, setPomodoroCycle] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const startedAtRef = useRef(null);
 
   const [mode, setMode] = useState('pomodoro');
   const [phase, setPhase] = useState('work');
@@ -104,32 +106,32 @@ export const FocusProvider = ({ children }) => {
     [customMinutes]
   );
 
-  const recordSession = useCallback(
-    async (completedMode, completedPhase, durationSec) => {
-      const minutes = Math.round(durationSec / 60);
-      if (minutes < 1 || completedPhase !== 'work' || !isAuthenticated) return;
-
+  const endActiveSession = useCallback(
+    async ({ completed }) => {
+      if (!isAuthenticated || !activeSessionId) return;
       try {
-        const session = await focusApi.createSession({
-          mode: completedMode,
-          phase: completedPhase,
-          minutes,
-          completedAt: new Date().toISOString(),
+        const endedAt = new Date().toISOString();
+        const session = await focusApi.endSession({
+          sessionId: activeSessionId,
+          completed: Boolean(completed),
+          endedAt,
+          notes: '',
         });
-        setHistory((prev) => [session, ...prev].slice(0, 200));
-        setLastCompleted(session);
-        setShowComplete(true);
-        setTimeout(() => setShowComplete(false), 3200);
-        if (completedMode === 'pomodoro') {
-          setPomodoroCycle((c) => c + 1);
+        setActiveSessionId(null);
+        startedAtRef.current = null;
+        if (session?.completed) {
+          setHistory((prev) => [session, ...prev].slice(0, 200));
+          setLastCompleted(session);
+          setShowComplete(true);
+          setTimeout(() => setShowComplete(false), 3200);
         }
         const focusStats = await focusApi.fetchFocusStats();
-        setStats({ ...focusStats, pomodoroCycle: pomodoroCycle + (completedMode === 'pomodoro' ? 1 : 0) });
+        setStats({ ...focusStats, pomodoroCycle });
       } catch (err) {
-        setError(err.parsed?.message || 'Failed to save focus session');
+        setError(err.parsed?.message || 'Failed to end focus session');
       }
     },
-    [isAuthenticated, pomodoroCycle]
+    [isAuthenticated, activeSessionId, pomodoroCycle]
   );
 
   const clearTimer = useCallback(() => {
@@ -195,7 +197,9 @@ export const FocusProvider = ({ children }) => {
       setStatus('idle');
       const completedMode = mode;
       const completedPhase = phase;
-      recordSession(completedMode, completedPhase, totalSeconds);
+      if (completedPhase === 'work') {
+        endActiveSession({ completed: true });
+      }
 
       if (completedMode === 'pomodoro') {
         if (completedPhase === 'work') {
@@ -203,6 +207,7 @@ export const FocusProvider = ({ children }) => {
           const nextPhase = cycle % 4 === 0 ? 'longBreak' : 'shortBreak';
           setPhase(nextPhase);
           applyDuration('pomodoro', nextPhase);
+          setPomodoroCycle(cycle);
         } else {
           setPhase('work');
           applyDuration('pomodoro', 'work');
@@ -212,7 +217,7 @@ export const FocusProvider = ({ children }) => {
         applyDuration(mode, 'work');
       }
     }
-  }, [clearTimer, mode, phase, totalSeconds, recordSession, pomodoroCycle, applyDuration]);
+  }, [clearTimer, mode, phase, pomodoroCycle, applyDuration, endActiveSession]);
 
   const start = useCallback(() => {
     clearTimer();
@@ -223,6 +228,24 @@ export const FocusProvider = ({ children }) => {
     endAtRef.current = Date.now() + dur * 1000;
     setStatus('running');
     intervalRef.current = setInterval(tick, 250);
+
+    // Start a DB-backed session only for focus/work phases
+    if (isAuthenticated && phase === 'work' && !activeSessionId) {
+      const duration = Math.max(1, Math.round(dur / 60));
+      focusApi
+        .startSession({
+          duration,
+          sessionType: mode,
+          notes: '',
+        })
+        .then((session) => {
+          setActiveSessionId(session?.id || null);
+          startedAtRef.current = session?.startedAt || new Date().toISOString();
+        })
+        .catch((err) => {
+          setError(err.parsed?.message || 'Failed to start focus session');
+        });
+    }
   }, [clearTimer, secondsRemaining, mode, phase, applyDuration, getDurationForPhase, tick]);
 
   const pause = useCallback(() => {
@@ -242,8 +265,9 @@ export const FocusProvider = ({ children }) => {
     clearTimer();
     setStatus('idle');
     setShowComplete(false);
+    if (activeSessionId) endActiveSession({ completed: false });
     applyDuration(mode, phase === 'work' ? 'work' : phase);
-  }, [clearTimer, mode, phase, applyDuration]);
+  }, [clearTimer, mode, phase, applyDuration, activeSessionId, endActiveSession]);
 
   const skipBreak = useCallback(() => {
     clearTimer();
