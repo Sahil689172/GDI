@@ -12,10 +12,10 @@ const STORAGE_KEY = 'gdi-profile-v1';
 
 const defaultState = () => ({
   profile: {
-    name: 'Sahil',
-    email: 'operator@gottado.it',
-    bio: 'Building focus-driven productivity.',
-    role: 'Focus Operator',
+    name: '',
+    email: '',
+    bio: '',
+    role: '',
   },
   appearance: {
     compactLayout: false,

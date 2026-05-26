@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Search } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { useDashboard } from '../../context/DashboardContext';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { NAV_ITEMS } from '../../routes/navigation';
@@ -10,7 +11,10 @@ import { ThemeToggle } from '../ThemeToggle';
 
 export const MobileDrawer = () => {
   const { mobileMenuOpen, closeMobileMenu, openSearch } = useApp();
+  const { user } = useAuth();
   const { streak } = useDashboard();
+  const displayName = user?.name ?? 'Operator';
+  const displayStreak = user?.streak ?? streak;
   const location = useLocation();
 
   useScrollLock(mobileMenuOpen);
@@ -106,11 +110,16 @@ export const MobileDrawer = () => {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-elevated border border-border flex items-center justify-center font-mono text-sm font-bold">
-                  S
+                  {displayName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase() || '?'}
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-foreground font-sans">Sahil</p>
-                  <p className="text-[10px] font-mono text-muted">{streak}d streak</p>
+                  <p className="text-xs font-medium text-foreground font-sans truncate">{displayName}</p>
+                  <p className="text-[10px] font-mono text-muted">{displayStreak}d streak</p>
                 </div>
               </div>
             </div>

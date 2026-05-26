@@ -47,90 +47,14 @@ const serialize = (events) =>
     end: e.end.toISOString(),
   }));
 
-const defaultEvents = () => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const d = now.getDate();
-
-  return [
-    {
-      id: 'ev-1',
-      title: 'DBMS Assignment Due',
-      description: 'Submit final schema design',
-      start: new Date(y, m, d + 2, 23, 59),
-      end: new Date(y, m, d + 2, 23, 59),
-      type: 'assignment',
-      priority: 'high',
-      recurring: '',
-      allDay: true,
-    },
-    {
-      id: 'ev-2',
-      title: 'ML Study Block',
-      description: 'Chapter 4 — neural networks',
-      start: new Date(y, m, d, 9, 0),
-      end: new Date(y, m, d, 11, 0),
-      type: 'focus',
-      priority: 'normal',
-      recurring: 'weekly',
-      allDay: false,
-    },
-    {
-      id: 'ev-3',
-      title: 'Goal Review: React MVP',
-      description: 'Weekly goal checkpoint',
-      start: new Date(y, m, d + 1, 18, 0),
-      end: new Date(y, m, d + 1, 19, 0),
-      type: 'goal',
-      priority: 'normal',
-      recurring: 'weekly',
-      allDay: false,
-    },
-    {
-      id: 'ev-4',
-      title: 'Morning Focus Sprint',
-      description: '25min pomodoro × 2',
-      start: new Date(y, m, d, 7, 0),
-      end: new Date(y, m, d, 8, 30),
-      type: 'focus',
-      priority: 'normal',
-      recurring: 'daily',
-      allDay: false,
-    },
-    {
-      id: 'ev-5',
-      title: 'Project Milestone',
-      description: 'Gotta-do-it calendar module',
-      start: new Date(y, m, d + 5, 17, 0),
-      end: new Date(y, m, d + 5, 18, 30),
-      type: 'goal',
-      priority: 'high',
-      recurring: '',
-      allDay: false,
-    },
-    {
-      id: 'ev-6',
-      title: 'Hydration Reminder',
-      description: '',
-      start: new Date(y, m, d, 12, 0),
-      end: new Date(y, m, d, 12, 15),
-      type: 'reminder',
-      priority: 'low',
-      recurring: 'daily',
-      allDay: false,
-    },
-  ];
-};
-
 const loadEvents = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) return JSON.parse(stored).map(toEvent);
   } catch {
-    /* defaults */
+    /* empty */
   }
-  return defaultEvents();
+  return [];
 };
 
 const expandRecurring = (event, rangeStart, rangeEnd) => {

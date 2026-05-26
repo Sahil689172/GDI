@@ -10,7 +10,7 @@ import { CreateWorkspaceModal } from '../components/tasks/CreateWorkspaceModal';
 import { staggerContainer } from '../animations/pageTransitions';
 
 export const TasksPage = () => {
-  const { workspaces, stats, createWorkspace } = useTasks();
+  const { workspaces, stats, createWorkspace, loading, error } = useTasks();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -36,6 +36,16 @@ export const TasksPage = () => {
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
+      {error && (
+        <p className="mb-4 text-xs text-red-400/90 font-sans" role="alert">
+          {error}
+        </p>
+      )}
+
+      {loading && workspaces.length === 0 && (
+        <p className="mb-4 text-xs text-muted font-mono uppercase tracking-wider">Loading tasks…</p>
+      )}
+
       <PageHeader
         title="Focus Tasks Ledger"
         subtitle="Workspace-based task management. Organize, prioritize, and complete with precision."

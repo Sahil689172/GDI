@@ -10,6 +10,8 @@ import React, {
 } from 'react';
 import { useTasks } from './TasksContext';
 import { useGoals } from './GoalsContext';
+import { useAuth } from './AuthContext';
+import { useFocus } from './FocusContext';
 
 const DashboardContext = createContext(null);
 
@@ -62,18 +64,12 @@ export const DashboardProvider = ({ children }) => {
   } = useTasks();
 
   const { flatGoalsForDashboard: goals, createGoal } = useGoals();
+  const { user } = useAuth();
+  const { analytics: focusAnalytics } = useFocus();
 
-  const [streak, setStreak] = useState(12);
-  const [focusHours, setFocusHours] = useState(24.5);
-
-  const [notes, setNotes] = useState([
-    {
-      id: 1,
-      text: 'Remember to adjust the radial gradient mesh contrast before deploying.',
-      time: '10 mins ago',
-    },
-    { id: 2, text: 'Linear-inspired subtext looks better with tracking-wider.', time: '2 hours ago' },
-  ]);
+  const streak = user?.streak ?? 0;
+  const focusHours = focusAnalytics?.totalHours ?? 0;
+  const [notes, setNotes] = useState([]);
 
   const [isFocusActive, setIsFocusActive] = useState(false);
   const timerRef = useRef(null);
@@ -163,9 +159,6 @@ export const DashboardProvider = ({ children }) => {
       if (next <= 0) {
         clearInterval(timerRef.current);
         setIsFocusActive(false);
-        const sessionHours = Number((focusSessionTotalRef.current / 3600).toFixed(2));
-        setFocusHours((prevHours) => Number((prevHours + sessionHours).toFixed(1)));
-        setStreak((prevStreak) => prevStreak + 1);
         focusTickStore.focusTimeLeft = 0;
         emitFocusTick();
         return;
@@ -180,7 +173,6 @@ export const DashboardProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       streak,
-      setStreak,
       focusHours,
       tasks,
       addTask,
@@ -203,6 +195,7 @@ export const DashboardProvider = ({ children }) => {
     [
       streak,
       focusHours,
+      focusAnalytics,
       tasks,
       goals,
       notes,

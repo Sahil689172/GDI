@@ -13,7 +13,7 @@ export const ProfileCard = () => {
     if (!editing) setDraft(profile);
   }, [profile, editing]);
 
-  const initials = profile.name
+  const initials = (profile.name || profile.email || 'U')
     .split(' ')
     .map((n) => n[0])
     .join('')

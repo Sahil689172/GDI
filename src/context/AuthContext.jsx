@@ -10,6 +10,7 @@ import * as authApi from '../services/authApi.js';
 import { setStoredToken, clearStoredToken, getStoredToken } from '../utils/authStorage.js';
 import { setUnauthorizedHandler } from '../api/client.js';
 import { validateLogin, validateSignup } from '../utils/authValidation.js';
+import { clearAllLegacyAppStorage } from '../utils/clearLegacyStorage.js';
 
 const AuthContext = createContext(null);
 
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     clearStoredToken();
+    clearAllLegacyAppStorage();
     setStatus('unauthenticated');
     setError(null);
   }, []);

@@ -8,7 +8,7 @@ const LOADING_STEPS = [
   "Structuring Productivity Dashboard...",
   "Synchronizing Flow Streaks...",
   "Powering Up Gotta-do-it...",
-  "Welcome Sahil."
+  'Welcome aboard.'
 ];
 
 export const LoadingScreen = ({ onFinished }) => {

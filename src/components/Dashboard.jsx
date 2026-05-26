@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboard, useDashboardFocusTick } from '../context/DashboardContext';
+import { useAuth } from '../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
 import { 
   Play, 
@@ -38,11 +39,11 @@ export const Dashboard = () => {
   } = useDashboard();
 
   const { focusTimeLeft, focusSessionTotal } = useDashboardFocusTick();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Dynamic greeting based on time of day
-  const [greeting, setGreeting] = useState("Good Morning");
-  const [userName, setUserName] = useState("Sahil");
+  const [greeting, setGreeting] = useState('Good Morning');
+  const userName = user?.name?.split(' ')[0] || 'there';
 
   // Inline Quick Task Add State
   const [quickTaskTitle, setQuickTaskTitle] = useState('');

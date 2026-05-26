@@ -28,7 +28,7 @@ export const GoalsEmptyState = ({ onCreateGoal }) => {
       </div>
 
       <h3 className="text-xl font-semibold text-foreground font-sans text-glow mb-2 max-w-sm">
-        Your future starts with one goal.
+        No goals yet
       </h3>
       <p className="text-xs text-muted font-sans max-w-md mb-8 leading-relaxed">
         Define long-term objectives, track daily consistency, and watch your progress rings

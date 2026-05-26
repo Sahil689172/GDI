@@ -13,7 +13,10 @@ export const GoalPerformanceSection = ({ goals }) => {
         </h3>
       </div>
       <div className="flex flex-col gap-3">
-        {goals.slice(0, 5).map((goal, i) => (
+        {goals.length === 0 ? (
+          <p className="text-[10px] text-muted text-center py-8 font-sans">No goals yet</p>
+        ) : (
+        goals.slice(0, 5).map((goal, i) => (
           <motion.div
             key={goal.id}
             initial={{ opacity: 0 }}
@@ -37,7 +40,8 @@ export const GoalPerformanceSection = ({ goals }) => {
               {goal.daysCompleted}/{goal.targetDays}d · {goal.streak}d streak
             </span>
           </motion.div>
-        ))}
+        ))
+        )}
       </div>
     </GlassCard>
   );

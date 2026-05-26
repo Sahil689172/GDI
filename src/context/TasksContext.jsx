@@ -6,62 +6,47 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { useAuth } from './AuthContext';
+import * as tasksApi from '../services/tasksApi.js';
+import { clearLegacyTaskStorage } from '../utils/clearLegacyStorage.js';
 
-const STORAGE_KEY = 'gdi-workspaces-v1';
+const TasksContext = createContext(null);
 
-const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+const normalizeWorkspace = (ws) => ({
+  id: String(ws.id),
+  name: ws.name,
+  collapsed: Boolean(ws.collapsed),
+  order: ws.order ?? 0,
+  tasks: (ws.tasks ?? []).map((t) => ({
+    id: String(t.id),
+    title: t.title,
+    completed: Boolean(t.completed),
+    priority: t.priority ?? 'normal',
+    order: t.order ?? 0,
+  })),
+});
 
-const DEFAULT_WORKSPACES = [
-  {
-    id: 'ws-academic',
-    name: 'Academic Goals',
-    collapsed: false,
-    tasks: [
-      { id: 't-1', title: 'Complete Assignment', completed: false, priority: 'high' },
-      { id: 't-2', title: 'Revise DBMS', completed: true, priority: 'normal' },
-      { id: 't-3', title: 'Learn React Native', completed: false, priority: 'normal' },
-    ],
-  },
-  {
-    id: 'ws-personal',
-    name: 'Personal Goals',
-    collapsed: false,
-    tasks: [
-      { id: 't-4', title: 'Read 20 pages daily', completed: false, priority: 'normal' },
-      { id: 't-5', title: 'Plan weekend trip', completed: false, priority: 'high' },
-    ],
-  },
-  {
-    id: 'ws-fitness',
-    name: 'Fitness',
-    collapsed: true,
-    tasks: [
-      { id: 't-6', title: 'Morning run 5km', completed: true, priority: 'normal' },
-      { id: 't-7', title: 'Stretch routine', completed: false, priority: 'normal' },
-    ],
-  },
-  {
-    id: 'ws-project',
-    name: 'Project Work',
-    collapsed: false,
-    tasks: [
-      { id: 't-8', title: 'Release Vite Core Architecture', completed: false, priority: 'high' },
-      { id: 't-9', title: 'Optimize Glassmorphism Shaders', completed: true, priority: 'normal' },
-    ],
-  },
-];
-
-const loadWorkspaces = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {
-    /* use defaults */
-  }
-  return DEFAULT_WORKSPACES;
+const upsertTaskInWorkspaces = (workspaces, task) => {
+  const wsId = String(task.workspaceId);
+  return workspaces.map((ws) => {
+    if (ws.id !== wsId) return ws;
+    const exists = ws.tasks.some((t) => t.id === String(task.id));
+    const nextTask = {
+      id: String(task.id),
+      title: task.title,
+      completed: Boolean(task.completed),
+      priority: task.priority ?? 'normal',
+      order: task.order ?? 0,
+    };
+    return {
+      ...ws,
+      collapsed: false,
+      tasks: exists
+        ? ws.tasks.map((t) => (t.id === nextTask.id ? nextTask : t))
+        : [...ws.tasks, nextTask],
+    };
+  });
 };
-
-const TasksContext = createContext();
 
 export const useTasks = () => {
   const ctx = useContext(TasksContext);
@@ -70,11 +55,37 @@ export const useTasks = () => {
 };
 
 export const TasksProvider = ({ children }) => {
-  const [workspaces, setWorkspaces] = useState(loadWorkspaces);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [workspaces, setWorkspaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const refreshWorkspaces = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await tasksApi.fetchWorkspaces();
+      setWorkspaces(data.map(normalizeWorkspace));
+    } catch (err) {
+      setError(err.parsed?.message || 'Failed to load tasks');
+      setWorkspaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(workspaces));
-  }, [workspaces]);
+    if (authLoading) return;
+    if (isAuthenticated) {
+      clearLegacyTaskStorage();
+      refreshWorkspaces();
+    } else {
+      setWorkspaces([]);
+      setError(null);
+      clearLegacyTaskStorage();
+    }
+  }, [isAuthenticated, authLoading, refreshWorkspaces]);
 
   const allTasks = useMemo(
     () =>
@@ -102,165 +113,230 @@ export const TasksProvider = ({ children }) => {
         id: t.id,
         title: t.title,
         completed: t.completed,
-        priority: t.priority === 'high' ? 'High' : 'Medium',
+        priority: t.priority === 'high' ? 'High' : t.priority === 'low' ? 'Low' : 'Medium',
         deadline: 'Today',
         workspaceId: t.workspaceId,
       })),
     [allTasks]
   );
 
-  const createWorkspace = useCallback((name) => {
+  const createWorkspace = useCallback(async (name) => {
     const trimmed = name.trim();
-    if (!trimmed) return null;
-    const newWs = {
-      id: generateId(),
-      name: trimmed,
-      collapsed: false,
-      tasks: [],
-    };
-    setWorkspaces((prev) => [...prev, newWs]);
-    return newWs.id;
-  }, []);
+    if (!trimmed || !isAuthenticated) return null;
+    try {
+      const workspace = await tasksApi.createWorkspace({ name: trimmed, collapsed: false });
+      const normalized = normalizeWorkspace(workspace);
+      setWorkspaces((prev) => [...prev, normalized]);
+      return normalized.id;
+    } catch (err) {
+      setError(err.parsed?.message || 'Failed to create workspace');
+      return null;
+    }
+  }, [isAuthenticated]);
 
-  const updateWorkspace = useCallback((workspaceId, name) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setWorkspaces((prev) =>
-      prev.map((ws) => (ws.id === workspaceId ? { ...ws, name: trimmed } : ws))
-    );
-  }, []);
-
-  const deleteWorkspace = useCallback((workspaceId) => {
-    setWorkspaces((prev) => prev.filter((ws) => ws.id !== workspaceId));
-  }, []);
-
-  const toggleWorkspaceCollapse = useCallback((workspaceId) => {
-    setWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.id === workspaceId ? { ...ws, collapsed: !ws.collapsed } : ws
-      )
-    );
-  }, []);
-
-  const reorderWorkspaces = useCallback((activeId, overId) => {
-    if (!overId || activeId === overId) return;
-    setWorkspaces((prev) => {
-      const oldIndex = prev.findIndex((ws) => ws.id === activeId);
-      const newIndex = prev.findIndex((ws) => ws.id === overId);
-      if (oldIndex === -1 || newIndex === -1) return prev;
-      const next = [...prev];
-      const [removed] = next.splice(oldIndex, 1);
-      next.splice(newIndex, 0, removed);
-      return next;
-    });
-  }, []);
-
-  const addTask = useCallback((workspaceId, title, priority = 'normal') => {
-    const trimmed = title.trim();
-    if (!trimmed) return;
-    setWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.id === workspaceId
-          ? {
-              ...ws,
-              collapsed: false,
-              tasks: [
-                ...ws.tasks,
-                { id: generateId(), title: trimmed, completed: false, priority },
-              ],
-            }
-          : ws
-      )
-    );
-  }, []);
-
-  const addTaskToFirstWorkspace = useCallback(
-    (title, priority = 'normal') => {
-      const trimmed = title.trim();
-      if (!trimmed) return;
-      setWorkspaces((prev) => {
-        if (prev.length === 0) {
-          const wsId = generateId();
-          return [
-            {
-              id: wsId,
-              name: 'Inbox',
-              collapsed: false,
-              tasks: [{ id: generateId(), title: trimmed, completed: false, priority }],
-            },
-          ];
-        }
-        return prev.map((ws, i) =>
-          i === 0
-            ? {
-                ...ws,
-                tasks: [
-                  ...ws.tasks,
-                  { id: generateId(), title: trimmed, completed: false, priority },
-                ],
-              }
-            : ws
+  const updateWorkspace = useCallback(
+    async (workspaceId, name) => {
+      const trimmed = name.trim();
+      if (!trimmed || !isAuthenticated) return;
+      try {
+        const workspace = await tasksApi.updateWorkspace(workspaceId, { name: trimmed });
+        const normalized = normalizeWorkspace(workspace);
+        setWorkspaces((prev) =>
+          prev.map((ws) => (ws.id === workspaceId ? normalized : ws))
         );
-      });
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to update workspace');
+      }
     },
-    []
+    [isAuthenticated]
   );
 
-  const updateTask = useCallback((workspaceId, taskId, updates) => {
-    setWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.id === workspaceId
-          ? {
-              ...ws,
-              tasks: ws.tasks.map((t) =>
-                t.id === taskId ? { ...t, ...updates } : t
-              ),
-            }
-          : ws
-      )
-    );
-  }, []);
+  const deleteWorkspace = useCallback(
+    async (workspaceId) => {
+      if (!isAuthenticated) return;
+      try {
+        await tasksApi.deleteWorkspace(workspaceId);
+        setWorkspaces((prev) => prev.filter((ws) => ws.id !== workspaceId));
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to delete workspace');
+      }
+    },
+    [isAuthenticated]
+  );
 
-  const toggleTask = useCallback((workspaceId, taskId) => {
-    setWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.id === workspaceId
-          ? {
-              ...ws,
-              tasks: ws.tasks.map((t) =>
-                t.id === taskId ? { ...t, completed: !t.completed } : t
-              ),
-            }
-          : ws
-      )
-    );
-  }, []);
+  const toggleWorkspaceCollapse = useCallback(
+    async (workspaceId) => {
+      const ws = workspaces.find((w) => w.id === workspaceId);
+      if (!ws || !isAuthenticated) return;
+      const collapsed = !ws.collapsed;
+      setWorkspaces((prev) =>
+        prev.map((w) => (w.id === workspaceId ? { ...w, collapsed } : w))
+      );
+      try {
+        await tasksApi.updateWorkspace(workspaceId, { collapsed });
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to update workspace');
+        refreshWorkspaces();
+      }
+    },
+    [workspaces, isAuthenticated, refreshWorkspaces]
+  );
 
-  const deleteTask = useCallback((workspaceId, taskId) => {
-    setWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.id === workspaceId
-          ? { ...ws, tasks: ws.tasks.filter((t) => t.id !== taskId) }
-          : ws
-      )
-    );
-  }, []);
+  const reorderWorkspaces = useCallback(
+    async (activeId, overId) => {
+      if (!overId || activeId === overId || !isAuthenticated) return;
+      const oldIndex = workspaces.findIndex((ws) => ws.id === activeId);
+      const newIndex = workspaces.findIndex((ws) => ws.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
 
-  const reorderTasks = useCallback((workspaceId, activeId, overId) => {
-    if (!overId || activeId === overId) return;
-    setWorkspaces((prev) =>
-      prev.map((ws) => {
-        if (ws.id !== workspaceId) return ws;
-        const oldIndex = ws.tasks.findIndex((t) => t.id === activeId);
-        const newIndex = ws.tasks.findIndex((t) => t.id === overId);
-        if (oldIndex === -1 || newIndex === -1) return ws;
-        const tasks = [...ws.tasks];
-        const [removed] = tasks.splice(oldIndex, 1);
-        tasks.splice(newIndex, 0, removed);
-        return { ...ws, tasks };
-      })
-    );
-  }, []);
+      const next = [...workspaces];
+      const [removed] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, removed);
+      const orderedIds = next.map((ws) => ws.id);
+      setWorkspaces(next);
+
+      try {
+        const data = await tasksApi.reorderWorkspaces(orderedIds);
+        setWorkspaces(data.map(normalizeWorkspace));
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to reorder workspaces');
+        refreshWorkspaces();
+      }
+    },
+    [workspaces, isAuthenticated, refreshWorkspaces]
+  );
+
+  const addTask = useCallback(
+    async (workspaceId, title, priority = 'normal') => {
+      const trimmed = title.trim();
+      if (!trimmed || !isAuthenticated) return;
+      try {
+        const task = await tasksApi.createTask({
+          workspaceId,
+          title: trimmed,
+          priority,
+          completed: false,
+        });
+        setWorkspaces((prev) => upsertTaskInWorkspaces(prev, task));
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to add task');
+      }
+    },
+    [isAuthenticated]
+  );
+
+  const addTaskToFirstWorkspace = useCallback(
+    async (title, priority = 'normal') => {
+      const trimmed = title.trim();
+      if (!trimmed || !isAuthenticated) return;
+
+      let workspaceId = workspaces[0]?.id;
+      if (!workspaceId) {
+        workspaceId = await createWorkspace('Inbox');
+        if (!workspaceId) return;
+      }
+      await addTask(workspaceId, trimmed, priority);
+    },
+    [workspaces, isAuthenticated, createWorkspace, addTask]
+  );
+
+  const updateTask = useCallback(
+    async (workspaceId, taskId, updates) => {
+      if (!isAuthenticated) return;
+      try {
+        const task = await tasksApi.updateTask(taskId, updates);
+        setWorkspaces((prev) => {
+          let next = upsertTaskInWorkspaces(prev, task);
+          if (updates.workspaceId && String(updates.workspaceId) !== workspaceId) {
+            next = next.map((ws) =>
+              ws.id === workspaceId
+                ? { ...ws, tasks: ws.tasks.filter((t) => t.id !== taskId) }
+                : ws
+            );
+          }
+          return next;
+        });
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to update task');
+        refreshWorkspaces();
+      }
+    },
+    [isAuthenticated, refreshWorkspaces]
+  );
+
+  const toggleTask = useCallback(
+    async (workspaceId, taskId) => {
+      const ws = workspaces.find((w) => w.id === workspaceId);
+      const task = ws?.tasks.find((t) => t.id === taskId);
+      if (!task || !isAuthenticated) return;
+      await updateTask(workspaceId, taskId, { completed: !task.completed });
+    },
+    [workspaces, isAuthenticated, updateTask]
+  );
+
+  const deleteTask = useCallback(
+    async (workspaceId, taskId) => {
+      if (!isAuthenticated) return;
+      try {
+        await tasksApi.deleteTask(taskId);
+        setWorkspaces((prev) =>
+          prev.map((ws) =>
+            ws.id === workspaceId
+              ? { ...ws, tasks: ws.tasks.filter((t) => t.id !== taskId) }
+              : ws
+          )
+        );
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to delete task');
+      }
+    },
+    [isAuthenticated]
+  );
+
+  const reorderTasks = useCallback(
+    async (workspaceId, activeId, overId) => {
+      if (!overId || activeId === overId || !isAuthenticated) return;
+      const ws = workspaces.find((w) => w.id === workspaceId);
+      if (!ws) return;
+
+      const oldIndex = ws.tasks.findIndex((t) => t.id === activeId);
+      const newIndex = ws.tasks.findIndex((t) => t.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const tasks = [...ws.tasks];
+      const [removed] = tasks.splice(oldIndex, 1);
+      tasks.splice(newIndex, 0, removed);
+      const orderedIds = tasks.map((t) => t.id);
+
+      setWorkspaces((prev) =>
+        prev.map((w) => (w.id === workspaceId ? { ...w, tasks } : w))
+      );
+
+      try {
+        const updated = await tasksApi.reorderTasks(workspaceId, orderedIds);
+        setWorkspaces((prev) =>
+          prev.map((w) =>
+            w.id === workspaceId
+              ? {
+                  ...w,
+                  tasks: updated.map((t) => ({
+                    id: String(t.id),
+                    title: t.title,
+                    completed: Boolean(t.completed),
+                    priority: t.priority ?? 'normal',
+                    order: t.order ?? 0,
+                  })),
+                }
+              : w
+          )
+        );
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to reorder tasks');
+        refreshWorkspaces();
+      }
+    },
+    [workspaces, isAuthenticated, refreshWorkspaces]
+  );
 
   const toggleTaskById = useCallback(
     (taskId) => {
@@ -275,25 +351,51 @@ export const TasksProvider = ({ children }) => {
     [workspaces, toggleTask]
   );
 
-  const value = {
-    workspaces,
-    setWorkspaces,
-    allTasks,
-    stats,
-    flatTasksForDashboard,
-    createWorkspace,
-    updateWorkspace,
-    deleteWorkspace,
-    toggleWorkspaceCollapse,
-    reorderWorkspaces,
-    addTask,
-    addTaskToFirstWorkspace,
-    updateTask,
-    toggleTask,
-    toggleTaskById,
-    deleteTask,
-    reorderTasks,
-  };
+  const value = useMemo(
+    () => ({
+      workspaces,
+      setWorkspaces,
+      allTasks,
+      stats,
+      flatTasksForDashboard,
+      loading,
+      error,
+      refreshWorkspaces,
+      createWorkspace,
+      updateWorkspace,
+      deleteWorkspace,
+      toggleWorkspaceCollapse,
+      reorderWorkspaces,
+      addTask,
+      addTaskToFirstWorkspace,
+      updateTask,
+      toggleTask,
+      toggleTaskById,
+      deleteTask,
+      reorderTasks,
+    }),
+    [
+      workspaces,
+      allTasks,
+      stats,
+      flatTasksForDashboard,
+      loading,
+      error,
+      refreshWorkspaces,
+      createWorkspace,
+      updateWorkspace,
+      deleteWorkspace,
+      toggleWorkspaceCollapse,
+      reorderWorkspaces,
+      addTask,
+      addTaskToFirstWorkspace,
+      updateTask,
+      toggleTask,
+      toggleTaskById,
+      deleteTask,
+      reorderTasks,
+    ]
+  );
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;
 };

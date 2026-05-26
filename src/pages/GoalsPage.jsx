@@ -52,6 +52,8 @@ export const GoalsPage = () => {
     deleteGoal,
     logProgressDay,
     toggleMilestone,
+    loading,
+    error,
   } = useGoals();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,7 +105,17 @@ export const GoalsPage = () => {
         badge={`${stats.active} active`}
       />
 
-      {!hasGoals ? (
+      {error && (
+        <p className="mb-4 text-xs text-red-400/90 font-sans" role="alert">
+          {error}
+        </p>
+      )}
+
+      {loading && !hasGoals ? (
+        <p className="text-xs text-muted font-mono uppercase tracking-wider py-12 text-center">
+          Loading goals…
+        </p>
+      ) : !hasGoals ? (
         <GoalsEmptyState onCreateGoal={() => setModalOpen(true)} />
       ) : (
         <>

@@ -6,6 +6,7 @@ import {
   Lock,
   Mail,
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 import { useProfile } from '../../../context/ProfileContext';
 import { SettingsSection } from '../SettingsSection';
 import { SettingsRow } from '../SettingsRow';
@@ -13,6 +14,7 @@ import { GlassCard } from '../../../ui/GlassCard';
 
 export const AccountSettings = () => {
   const {
+    profile,
     security,
     updateSettings,
     sessions,
@@ -21,6 +23,7 @@ export const AccountSettings = () => {
     setConnectedAccount,
     triggerSave,
   } = useProfile();
+  const { logout, actionLoading } = useAuth();
 
   return (
     <div className="space-y-3">
@@ -120,16 +123,19 @@ export const AccountSettings = () => {
       </SettingsSection>
 
       <SettingsSection title="App" icon={Mail}>
-        <SettingsRow label="Account email" description="Read-only in demo">
-          <span className="text-[10px] font-mono text-muted">operator@gottado.it</span>
+        <SettingsRow label="Account email" description="From your account">
+          <span className="text-[10px] font-mono text-muted truncate max-w-[180px]">
+            {profile.email || '—'}
+          </span>
         </SettingsRow>
         <div className="py-3">
           <button
             type="button"
-            onClick={() => triggerSave('Sign out — demo only')}
-            className="w-full py-2.5 rounded-xl border border-border text-xs text-muted hover:text-foreground font-sans transition-colors"
+            onClick={() => logout()}
+            disabled={actionLoading}
+            className="w-full py-2.5 rounded-xl border border-border text-xs text-muted hover:text-foreground font-sans transition-colors disabled:opacity-50"
           >
-            Sign out
+            {actionLoading ? 'Signing out…' : 'Sign out'}
           </button>
         </div>
       </SettingsSection>

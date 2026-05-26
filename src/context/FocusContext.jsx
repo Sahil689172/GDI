@@ -8,26 +8,29 @@ import React, {
   useCallback,
 } from 'react';
 import { PRESETS } from '../components/focus/focusConstants';
+import { useAuth } from './AuthContext';
+import * as focusApi from '../services/focusApi.js';
+import { clearLegacyFocusStorage } from '../utils/clearLegacyStorage.js';
 
-const STORAGE_KEY = 'gdi-focus-v1';
-
-const todayKey = () => new Date().toISOString().split('T')[0];
-
-const loadState = () => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* defaults */
-  }
-  return { history: [], dailyMinutes: {}, pomodoroCycle: 0 };
+const emptyStats = {
+  totalHours: 0,
+  avgSession: 0,
+  dailyHoursToday: 0,
+  dailyMinutesToday: 0,
+  weekDays: Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return {
+      label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      minutes: 0,
+    };
+  }),
+  bestTime: '—',
+  sessionCount: 0,
+  pomodoroCycle: 0,
 };
 
-const saveState = (data) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-};
-
-const FocusContext = createContext();
+const FocusContext = createContext(null);
 
 export const useFocus = () => {
   const ctx = useContext(FocusContext);
@@ -36,7 +39,13 @@ export const useFocus = () => {
 };
 
 export const FocusProvider = ({ children }) => {
-  const [persisted, setPersisted] = useState(loadState);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [history, setHistory] = useState([]);
+  const [stats, setStats] = useState(emptyStats);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pomodoroCycle, setPomodoroCycle] = useState(0);
+
   const [mode, setMode] = useState('pomodoro');
   const [phase, setPhase] = useState('work');
   const [status, setStatus] = useState('idle');
@@ -50,9 +59,38 @@ export const FocusProvider = ({ children }) => {
   const intervalRef = useRef(null);
   const endAtRef = useRef(null);
 
+  const refreshFocusData = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [sessions, focusStats] = await Promise.all([
+        focusApi.fetchSessions(),
+        focusApi.fetchFocusStats(),
+      ]);
+      setHistory(sessions);
+      setStats({ ...focusStats, pomodoroCycle });
+    } catch (err) {
+      setError(err.parsed?.message || 'Failed to load focus data');
+      setHistory([]);
+      setStats(emptyStats);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, pomodoroCycle]);
+
   useEffect(() => {
-    saveState(persisted);
-  }, [persisted]);
+    if (authLoading) return;
+    if (isAuthenticated) {
+      clearLegacyFocusStorage();
+      refreshFocusData();
+    } else {
+      setHistory([]);
+      setStats(emptyStats);
+      setError(null);
+      clearLegacyFocusStorage();
+    }
+  }, [isAuthenticated, authLoading, refreshFocusData]);
 
   const getDurationForPhase = useCallback(
     (m, ph) => {
@@ -66,42 +104,33 @@ export const FocusProvider = ({ children }) => {
     [customMinutes]
   );
 
-  const recordSession = useCallback((completedMode, completedPhase, durationSec) => {
-    const minutes = Math.round(durationSec / 60);
-    if (minutes < 1) return;
+  const recordSession = useCallback(
+    async (completedMode, completedPhase, durationSec) => {
+      const minutes = Math.round(durationSec / 60);
+      if (minutes < 1 || completedPhase !== 'work' || !isAuthenticated) return;
 
-    const now = new Date();
-    const entry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      mode: completedMode,
-      phase: completedPhase,
-      minutes,
-      completedAt: now.toISOString(),
-      hourOfDay: now.getHours(),
-    };
-
-    if (completedPhase === 'work') {
-      setPersisted((prev) => {
-        const day = todayKey();
-        const dailyMinutes = {
-          ...prev.dailyMinutes,
-          [day]: (prev.dailyMinutes[day] || 0) + minutes,
-        };
-        return {
-          ...prev,
-          history: [entry, ...prev.history].slice(0, 200),
-          dailyMinutes,
-          pomodoroCycle:
-            completedMode === 'pomodoro'
-              ? (prev.pomodoroCycle || 0) + 1
-              : prev.pomodoroCycle,
-        };
-      });
-      setLastCompleted(entry);
-      setShowComplete(true);
-      setTimeout(() => setShowComplete(false), 3200);
-    }
-  }, []);
+      try {
+        const session = await focusApi.createSession({
+          mode: completedMode,
+          phase: completedPhase,
+          minutes,
+          completedAt: new Date().toISOString(),
+        });
+        setHistory((prev) => [session, ...prev].slice(0, 200));
+        setLastCompleted(session);
+        setShowComplete(true);
+        setTimeout(() => setShowComplete(false), 3200);
+        if (completedMode === 'pomodoro') {
+          setPomodoroCycle((c) => c + 1);
+        }
+        const focusStats = await focusApi.fetchFocusStats();
+        setStats({ ...focusStats, pomodoroCycle: pomodoroCycle + (completedMode === 'pomodoro' ? 1 : 0) });
+      } catch (err) {
+        setError(err.parsed?.message || 'Failed to save focus session');
+      }
+    },
+    [isAuthenticated, pomodoroCycle]
+  );
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -170,7 +199,7 @@ export const FocusProvider = ({ children }) => {
 
       if (completedMode === 'pomodoro') {
         if (completedPhase === 'work') {
-          const cycle = (persisted.pomodoroCycle || 0) + 1;
+          const cycle = pomodoroCycle + 1;
           const nextPhase = cycle % 4 === 0 ? 'longBreak' : 'shortBreak';
           setPhase(nextPhase);
           applyDuration('pomodoro', nextPhase);
@@ -183,7 +212,7 @@ export const FocusProvider = ({ children }) => {
         applyDuration(mode, 'work');
       }
     }
-  }, [clearTimer, mode, phase, totalSeconds, recordSession, persisted.pomodoroCycle, applyDuration]);
+  }, [clearTimer, mode, phase, totalSeconds, recordSession, pomodoroCycle, applyDuration]);
 
   const start = useCallback(() => {
     clearTimer();
@@ -225,63 +254,13 @@ export const FocusProvider = ({ children }) => {
 
   useEffect(() => () => clearTimer(), [clearTimer]);
 
-  const analytics = useMemo(() => {
-    const workSessions = persisted.history.filter((s) => s.phase === 'work');
-    const totalMinutes = workSessions.reduce((a, s) => a + s.minutes, 0);
-    const totalHours = Number((totalMinutes / 60).toFixed(1));
-    const avgSession =
-      workSessions.length > 0
-        ? Math.round(totalMinutes / workSessions.length)
-        : 0;
-
-    const today = todayKey();
-    const dailyMinutesToday = persisted.dailyMinutes[today] || 0;
-    const dailyHoursToday = Number((dailyMinutesToday / 60).toFixed(1));
-
-    const weekDays = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().split('T')[0];
-      weekDays.push({
-        label: d.toLocaleDateString([], { weekday: 'short' }),
-        minutes: persisted.dailyMinutes[key] || 0,
-      });
-    }
-
-    const hourCounts = Array(24).fill(0);
-    workSessions.forEach((s) => {
-      hourCounts[s.hourOfDay] = (hourCounts[s.hourOfDay] || 0) + 1;
-    });
-    let bestHour = 9;
-    let bestCount = 0;
-    hourCounts.forEach((c, h) => {
-      if (c > bestCount) {
-        bestCount = c;
-        bestHour = h;
-      }
-    });
-    const formatHour = (h) => {
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const hr = h % 12 || 12;
-      return `${hr} ${ampm}`;
-    };
-    const bestTime =
-      bestCount > 0
-        ? `${formatHour(bestHour)} – ${formatHour((bestHour + 1) % 24)}`
-        : '—';
-
-    return {
-      totalHours,
-      avgSession,
-      dailyHoursToday,
-      dailyMinutesToday,
-      weekDays,
-      bestTime,
-      sessionCount: workSessions.length,
-      pomodoroCycle: persisted.pomodoroCycle || 0,
-    };
-  }, [persisted]);
+  const analytics = useMemo(
+    () => ({
+      ...stats,
+      pomodoroCycle,
+    }),
+    [stats, pomodoroCycle]
+  );
 
   const progress = totalSeconds > 0 ? secondsRemaining / totalSeconds : 0;
 
@@ -317,7 +296,10 @@ export const FocusProvider = ({ children }) => {
     reset,
     skipBreak,
     analytics,
-    history: persisted.history,
+    history,
+    loading,
+    error,
+    refreshFocusData,
   };
 
   return <FocusContext.Provider value={value}>{children}</FocusContext.Provider>;

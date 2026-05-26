@@ -26,7 +26,7 @@ export const FocusHistory = ({ history }) => {
         <AnimatePresence mode="popLayout">
           {items.length === 0 ? (
             <p className="text-[10px] text-muted text-center py-8 font-sans">
-              No sessions yet. Start your first focus block.
+              No focus sessions recorded
             </p>
           ) : (
             items.map((session, i) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Gauge,
@@ -21,38 +21,39 @@ import { FocusAnalyticsSection } from '../components/analytics/FocusAnalyticsSec
 import { GoalPerformanceSection } from '../components/analytics/GoalPerformanceSection';
 import { TaskInsightsSection } from '../components/analytics/TaskInsightsSection';
 import { AnalyticsSkeleton } from '../components/analytics/AnalyticsSkeleton';
+import { AnalyticsEmptyState } from '../components/analytics/AnalyticsEmptyState';
 import { staggerContainer } from '../animations/pageTransitions';
 
 export const AnalyticsPage = () => {
   const [period, setPeriod] = useState('weekly');
-  const [loading, setLoading] = useState(true);
   const data = useAnalyticsData(period);
-
-  useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => setLoading(false), 480);
-    return () => clearTimeout(t);
-  }, [period]);
-
-  const { overview } = data;
+  const { overview, loading, error, hasData } = data;
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
       <PageHeader
         title="Diagnostic Insights"
-        subtitle="Productivity intelligence across tasks, focus, and long-term goals."
+        subtitle="Productivity intelligence from your tasks, focus, and goals."
         badge="Live metrics"
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <PeriodFilter value={period} onChange={setPeriod} />
         <p className="text-[10px] font-mono text-subtle uppercase tracking-widest">
-          Synced · {period} view
+          {loading ? 'Loading…' : `Synced · ${period} view`}
         </p>
       </div>
 
+      {error && (
+        <p className="mb-4 text-xs text-red-400/90 font-sans" role="alert">
+          {error}
+        </p>
+      )}
+
       {loading ? (
         <AnalyticsSkeleton />
+      ) : !hasData ? (
+        <AnalyticsEmptyState />
       ) : (
         <motion.div
           key={period}
