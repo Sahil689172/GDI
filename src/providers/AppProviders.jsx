@@ -8,6 +8,7 @@ import { CalendarProvider } from '../context/CalendarContext';
 import { FocusProvider } from '../context/FocusContext';
 import { ProfileProvider } from '../context/ProfileContext';
 import { DashboardProvider } from '../context/DashboardContext';
+import { NotificationsProvider } from '../context/NotificationsContext';
 
 const ProviderTree = memo(function ProviderTree({ children }) {
   return (
@@ -18,9 +19,11 @@ const ProviderTree = memo(function ProviderTree({ children }) {
           <GoalsProvider>
             <CalendarProvider>
               <FocusProvider>
-                <ProfileProvider>
-                  <DashboardProvider>{children}</DashboardProvider>
-                </ProfileProvider>
+                <NotificationsProvider>
+                  <ProfileProvider>
+                    <DashboardProvider>{children}</DashboardProvider>
+                  </ProfileProvider>
+                </NotificationsProvider>
               </FocusProvider>
             </CalendarProvider>
           </GoalsProvider>

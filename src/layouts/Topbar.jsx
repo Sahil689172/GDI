@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search,
-  Bell,
   Plus,
   Target,
   Flame,
@@ -16,6 +15,7 @@ import { useDashboard } from '../context/DashboardContext';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
 import { getPageTitle } from '../routes/navigation';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { NotificationBell } from '../components/notifications/NotificationBell';
 import { DURATION, EASE } from '../animations/motion';
 
 const QUICK_ACTIONS = [
@@ -74,6 +74,7 @@ export const Topbar = memo(function Topbar() {
             >
               <Search className="w-4 h-4 text-foreground" />
             </button>
+            <NotificationBell className="scale-90" />
             <ThemeToggle className="scale-90" />
           </div>
         </div>
@@ -112,6 +113,7 @@ export const Topbar = memo(function Topbar() {
           </div>
           {isMobile && (
             <div className="flex items-center gap-1 shrink-0">
+              <NotificationBell className="md:hidden" />
               <ThemeToggle className="scale-90" />
               <button
                 type="button"
@@ -161,13 +163,7 @@ export const Topbar = memo(function Topbar() {
             <span className="text-sm font-mono font-bold text-foreground">{timeStr}</span>
           </div>
           <ThemeToggle className="hidden sm:flex" />
-          <button
-            type="button"
-            className="touch-target relative p-2 rounded-xl border border-border hidden md:flex"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-          </button>
+          <NotificationBell className="hidden md:flex" />
           <div className="hidden md:flex items-center gap-2 pl-2 border-l border-border">
             <div className="text-right hidden xl:block">
               <span className="text-xs font-medium text-foreground block truncate max-w-[120px]">

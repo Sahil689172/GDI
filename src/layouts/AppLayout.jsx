@@ -19,6 +19,11 @@ const GlobalSearch = lazy(() =>
 const FloatingActionMenu = lazy(() =>
   import('../components/FloatingActionMenu').then((m) => ({ default: m.FloatingActionMenu }))
 );
+const NotificationCenter = lazy(() =>
+  import('../components/notifications/NotificationCenter').then((m) => ({
+    default: m.NotificationCenter,
+  }))
+);
 
 const DeferredChrome = memo(function DeferredChrome() {
   return (
@@ -31,6 +36,9 @@ const DeferredChrome = memo(function DeferredChrome() {
       </Suspense>
       <Suspense fallback={null}>
         <FloatingActionMenu />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NotificationCenter />
       </Suspense>
     </>
   );
