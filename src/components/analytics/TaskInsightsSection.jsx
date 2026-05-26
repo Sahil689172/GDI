@@ -5,11 +5,18 @@ import { AnimatedCounter } from '../../ui/AnimatedCounter';
 import { ListTodo, CheckCircle2, AlertTriangle, Folder } from 'lucide-react';
 
 export const TaskInsightsSection = ({ insights }) => {
+  const safe = insights || {
+    completed: 0,
+    pending: 0,
+    highPriority: 0,
+    workspaces: 0,
+    completionRate: 0,
+  };
   const items = [
-    { label: 'Completed', value: insights.completed, icon: CheckCircle2 },
-    { label: 'Pending', value: insights.pending, icon: ListTodo },
-    { label: 'High Priority', value: insights.highPriority, icon: AlertTriangle },
-    { label: 'Workspaces', value: insights.workspaces, icon: Folder },
+    { label: 'Completed', value: safe.completed, icon: CheckCircle2 },
+    { label: 'Pending', value: safe.pending, icon: ListTodo },
+    { label: 'High Priority', value: safe.highPriority, icon: AlertTriangle },
+    { label: 'Workspaces', value: safe.workspaces, icon: Folder },
   ];
 
   return (
@@ -42,12 +49,12 @@ export const TaskInsightsSection = ({ insights }) => {
       <div className="pt-3 border-t border-border">
         <div className="flex justify-between text-[10px] font-mono text-muted mb-1.5">
           <span>Completion rate</span>
-          <span className="text-foreground font-bold">{insights.completionRate}%</span>
+          <span className="text-foreground font-bold">{safe.completionRate}%</span>
         </div>
         <div className="h-1.5 bg-gray-900 rounded-full overflow-hidden border border-border">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${insights.completionRate}%` }}
+            animate={{ width: `${safe.completionRate}%` }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="h-full bg-foreground shadow-glass-glow"
           />

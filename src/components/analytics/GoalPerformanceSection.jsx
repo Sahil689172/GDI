@@ -4,6 +4,7 @@ import { GlassCard } from '../../ui/GlassCard';
 import { Target } from 'lucide-react';
 
 export const GoalPerformanceSection = ({ goals }) => {
+  const safeGoals = Array.isArray(goals) ? goals : [];
   return (
     <GlassCard className="!p-5" hover={false}>
       <div className="flex items-center gap-2 mb-4">
@@ -13,10 +14,10 @@ export const GoalPerformanceSection = ({ goals }) => {
         </h3>
       </div>
       <div className="flex flex-col gap-3">
-        {goals.length === 0 ? (
+        {safeGoals.length === 0 ? (
           <p className="text-[10px] text-muted text-center py-8 font-sans">No goals yet</p>
         ) : (
-        goals.slice(0, 5).map((goal, i) => (
+        safeGoals.slice(0, 5).map((goal, i) => (
           <motion.div
             key={goal.id}
             initial={{ opacity: 0 }}

@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchAnalytics } from '../services/analyticsApi';
 import { emptyAnalytics } from '../utils/analyticsEmpty';
+import {
+  fetchDailyAnalytics,
+  fetchWeeklyAnalytics,
+  fetchMonthlyAnalytics,
+} from '../services/analyticsApi';
 
 export const useAnalyticsData = (period = 'weekly') => {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -22,19 +26,34 @@ export const useAnalyticsData = (period = 'weekly') => {
     setLoading(true);
     setError(null);
 
-    fetchAnalytics(period)
+    const fetcher =
+      period === 'daily'
+        ? fetchDailyAnalytics
+        : period === 'monthly'
+          ? fetchMonthlyAnalytics
+          : fetchWeeklyAnalytics;
+
+    fetcher()
       .then((analytics) => {
         if (cancelled) return;
         setData({
+          ...emptyAnalytics,
           ...analytics,
           overview: {
+            ...emptyAnalytics.overview,
             ...analytics.overview,
             streak: analytics.overview?.streak ?? user?.streak ?? 0,
           },
           focusAnalytics: {
+            ...emptyAnalytics.focusAnalytics,
             ...analytics.focusAnalytics,
             streak: analytics.focusAnalytics?.streak ?? user?.streak ?? 0,
           },
+          taskInsights: {
+            ...emptyAnalytics.taskInsights,
+            ...analytics.taskInsights,
+          },
+          goals: analytics.goals ?? emptyAnalytics.goals,
         });
       })
       .catch((err) => {
