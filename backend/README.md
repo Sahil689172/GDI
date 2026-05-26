@@ -1,6 +1,6 @@
-# Gotta-do-it API — Authentication
+# Gotta-do-it API
 
-Node.js, Express, MongoDB, Mongoose, JWT, bcrypt (bcryptjs), and dotenv.
+Node.js, Express, MongoDB, Mongoose, JWT, and dotenv.
 
 ## Setup
 
@@ -8,62 +8,120 @@ Node.js, Express, MongoDB, Mongoose, JWT, bcrypt (bcryptjs), and dotenv.
 cd backend
 npm install
 cp .env.example .env
+# Edit .env — set MONGODB_URI (Atlas) and JWT_SECRET
+npm run db:verify   # test database connection
 npm run dev
 ```
 
-## Auth endpoints
+From project root: `npm run dev:api` or `npm run dev:all`
 
-Base: `http://localhost:5000/api`
+**MongoDB Atlas:** full setup guide → [`docs/MONGODB_ATLAS.md`](docs/MONGODB_ATLAS.md)
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| POST | `/auth/signup` | No | Create account |
-| POST | `/auth/login` | No | Sign in |
-| POST | `/auth/logout` | No | Clear session cookie |
-| GET | `/auth/profile` | Yes | Current user profile |
+All routes below (except health/auth signup/login) require `Authorization: Bearer <token>`.
 
-### Signup / login body
+---
 
+## Auth
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/auth/signup` | Create account |
+| POST | `/auth/login` | Sign in |
+| POST | `/auth/logout` | Clear cookie |
+| GET | `/auth/profile` | Current user |
+
+---
+
+## Workspaces
+
+Nested structure: each workspace includes its `tasks[]` sorted by `order`.
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/workspaces` | List workspaces + nested tasks |
+| POST | `/workspaces` | Create workspace |
+| PUT | `/workspaces/:id` | Update name / collapsed / order |
+| DELETE | `/workspaces/:id` | Delete workspace + all its tasks |
+| PUT | `/workspaces/reorder` | Persist drag order |
+
+**Create body**
+```json
+{ "name": "Academic Goals", "collapsed": false }
+```
+
+**Reorder body**
+```json
+{ "orderedIds": ["workspaceId1", "workspaceId2"] }
+```
+
+---
+
+## Tasks
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/tasks` | List tasks (filter/search) |
+| POST | `/tasks` | Create task |
+| PUT | `/tasks/:id` | Update / complete / move |
+| DELETE | `/tasks/:id` | Delete task |
+| PUT | `/tasks/reorder` | Persist drag order in workspace |
+
+**Query params (GET)**  
+`workspaceId`, `completed` (`true`|`false`), `priority` (`low`|`normal`|`high`), `search`, `sort` (`order`|`priority`|`newest`|`completed`)
+
+**Create body**
 ```json
 {
-  "name": "Alex",
-  "email": "alex@example.com",
-  "password": "SecurePass1"
+  "workspaceId": "...",
+  "title": "Complete assignment",
+  "priority": "high",
+  "completed": false
 }
 ```
 
-### Auth header
+**Update body** (any combination)
+```json
+{
+  "title": "Updated title",
+  "completed": true,
+  "priority": "normal",
+  "order": 2,
+  "workspaceId": "..."
+}
+```
 
-`Authorization: Bearer <token>` or HttpOnly cookie `gdi_token`.
+**Reorder body**
+```json
+{
+  "workspaceId": "...",
+  "orderedIds": ["taskId1", "taskId2", "taskId3"]
+}
+```
 
-### Success response shape
+---
+
+## Response shape
 
 ```json
 {
   "success": true,
-  "message": "Logged in successfully",
-  "data": {
-    "user": {
-      "id": "...",
-      "name": "Alex",
-      "email": "alex@example.com",
-      "streak": 0,
-      "createdAt": "2026-05-25T..."
-    },
-    "token": "eyJhbG..."
-  }
+  "message": "Tasks retrieved",
+  "data": { "tasks": [] },
+  "meta": { "count": 0 }
 }
 ```
+
+---
 
 ## Structure
 
 ```
 src/
-  controllers/   authController.js
-  routes/        authRoutes.js, index.js
-  middleware/    auth.js, validate.js, errorHandler.js
-  models/        User.js
-  services/      authService.js
-  validators/    authValidators.js
-  utils/         jwt.js, userMapper.js, ApiError.js, ApiResponse.js
+  models/        User, Workspace, Task
+  services/      auth, workspace, task
+  controllers/
+  routes/
+  validators/
+  middleware/    auth, validate, errorHandler
+  utils/         mappers, ownership, ApiError, ApiResponse
 ```
