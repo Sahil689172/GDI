@@ -6,12 +6,14 @@ import {
   Pencil,
   Calendar,
   Target,
+  Archive,
 } from 'lucide-react';
 import { GlassCard } from '../../ui/GlassCard';
 import { ProgressRing } from './ProgressRing';
 import { StreakBadge } from './StreakBadge';
 import { GoalTimeline } from './GoalTimeline';
 import { StreakHistory } from './StreakHistory';
+import { formatDeadlineLabel, getCategoryLabel } from '../../utils/goalProgress';
 
 export const GoalCard = ({
   goal,
@@ -19,12 +21,18 @@ export const GoalCard = ({
   onToggleMilestone,
   onDelete,
   onEdit,
+  onArchive,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const milestonesDone = goal.milestones.filter((m) => m.completed).length;
+  const canLog = goal.status === 'active' && !goal.isCompleted;
+  const isArchived = goal.status === 'archived';
 
   return (
-    <GlassCard className="!p-0 overflow-hidden" glow={goal.progress >= 75 && !goal.isCompleted}>
+    <GlassCard
+      className="!p-0 overflow-hidden"
+      glow={goal.progress >= 75 && goal.status === 'active'}
+    >
       <div className="p-5">
         <div className="flex items-start gap-4">
           <ProgressRing
@@ -37,17 +45,43 @@ export const GoalCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                  <span className="text-[8px] font-mono text-muted uppercase tracking-widest px-1.5 py-0.5 rounded border border-border bg-surface">
+                    {getCategoryLabel(goal.category)}
+                  </span>
+                  {goal.status === 'completed' && (
+                    <span className="text-[8px] font-mono text-foreground uppercase tracking-widest">
+                      Completed
+                    </span>
+                  )}
+                  {isArchived && (
+                    <span className="text-[8px] font-mono text-subtle uppercase tracking-widest">
+                      Archived
+                    </span>
+                  )}
+                  {goal.isOverdue && (
+                    <span className="text-[8px] font-mono text-red-400/90 uppercase tracking-widest">
+                      Overdue
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-sm font-semibold text-foreground font-sans truncate">
                   {goal.title}
                 </h3>
-                {goal.isCompleted && (
-                  <span className="text-[8px] font-mono text-muted uppercase tracking-widest">
-                    Completed
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-0.5 shrink-0">
+                {!isArchived && onArchive && goal.status === 'completed' && (
+                  <button
+                    type="button"
+                    onClick={() => onArchive(goal.id)}
+                    className="p-1.5 rounded-lg text-subtle hover:text-foreground hover:bg-elevated transition-colors"
+                    aria-label="Archive goal"
+                  >
+                    <Archive className="w-3 h-3" />
+                  </button>
+                )}
                 <button
+                  type="button"
                   onClick={() => onEdit(goal)}
                   className="p-1.5 rounded-lg text-subtle hover:text-foreground hover:bg-elevated transition-colors"
                   aria-label="Edit goal"
@@ -55,6 +89,7 @@ export const GoalCard = ({
                   <Pencil className="w-3 h-3" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => onDelete(goal)}
                   className="p-1.5 rounded-lg text-subtle hover:text-foreground hover:bg-elevated transition-colors"
                   aria-label="Delete goal"
@@ -64,8 +99,15 @@ export const GoalCard = ({
               </div>
             </div>
 
-            <p className="text-[10px] text-muted font-sans mt-1.5 line-clamp-2 leading-relaxed">
-              {goal.description}
+            {goal.description && (
+              <p className="text-[10px] text-muted font-sans mt-1.5 line-clamp-2 leading-relaxed">
+                {goal.description}
+              </p>
+            )}
+
+            <p className="text-[9px] font-mono text-subtle mt-2 flex items-center gap-1">
+              <Calendar className="w-2.5 h-2.5" />
+              {formatDeadlineLabel(goal)}
             </p>
 
             <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -79,8 +121,9 @@ export const GoalCard = ({
         </div>
 
         <div className="flex gap-2 mt-4">
-          {!goal.isCompleted && (
+          {canLog && (
             <motion.button
+              type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onLogDay(goal.id)}
@@ -90,6 +133,7 @@ export const GoalCard = ({
             </motion.button>
           )}
           <button
+            type="button"
             onClick={() => setExpanded(!expanded)}
             className="px-3 py-2 rounded-xl border border-border bg-surface text-muted hover:text-foreground hover:border-border-strong transition-all flex items-center gap-1"
           >
@@ -127,7 +171,13 @@ export const GoalCard = ({
                 <StreakHistory history={goal.streakHistory} className="mb-4" />
                 <div className="flex flex-col gap-1 text-[10px] font-mono text-muted">
                   <span>Start: {goal.startDate}</span>
-                  <span>Target end: {goal.endDate}</span>
+                  <span>Deadline: {goal.endDate || goal.deadline}</span>
+                  {goal.completedAt && (
+                    <span>
+                      Finished:{' '}
+                      {new Date(goal.completedAt).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

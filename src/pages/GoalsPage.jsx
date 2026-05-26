@@ -15,8 +15,10 @@ const filterGoals = (goals, filter, query, sort) => {
   let result = [...goals];
   const q = query.trim().toLowerCase();
 
-  if (filter === 'active') result = result.filter((g) => !g.isCompleted);
-  if (filter === 'completed') result = result.filter((g) => g.isCompleted);
+  if (filter === 'active') result = result.filter((g) => g.status === 'active');
+  if (filter === 'completed') result = result.filter((g) => g.status === 'completed');
+  if (filter === 'archived') result = result.filter((g) => g.status === 'archived');
+  if (filter === 'all') result = result.filter((g) => g.status !== 'archived');
   if (q) {
     result = result.filter(
       (g) =>
@@ -52,6 +54,7 @@ export const GoalsPage = () => {
     deleteGoal,
     logProgressDay,
     toggleMilestone,
+    archiveGoal,
     loading,
     error,
   } = useGoals();
@@ -80,10 +83,11 @@ export const GoalsPage = () => {
         description: data.description,
         targetDays: data.targetDays,
         startDate: data.startDate,
+        category: data.category,
         milestones: data.milestones
           .filter((m) => m.title?.trim())
           .map((m, i) => ({
-            id: editGoal.milestones[i]?.id || `m-${Date.now()}-${i}`,
+            id: editGoal.milestones[i]?.id,
             title: m.title.trim(),
             completed: editGoal.milestones[i]?.completed ?? false,
             targetDay: m.targetDay ? Number(m.targetDay) : undefined,
@@ -173,6 +177,7 @@ export const GoalsPage = () => {
                         setModalOpen(true);
                       }}
                       onDelete={(g) => setDeleteTarget(g)}
+                      onArchive={archiveGoal}
                     />
                   </motion.div>
                 ))}

@@ -1,21 +1,42 @@
-const computeProgress = (goal) => {
-  if (!goal.targetDays) return 0;
-  return Math.min(100, Math.round((goal.daysCompleted / goal.targetDays) * 100));
-};
+import {
+  computeProgress,
+  computeDeadline,
+  computeDaysRemaining,
+  isGoalOverdue,
+} from './goalProgress.js';
 
 export const toPublicGoal = (goal) => {
-  const progress = computeProgress(goal);
-  const start = new Date(goal.startDate);
-  const end = new Date(start);
-  end.setDate(end.getDate() + goal.targetDays);
+  const progress = computeProgress(goal.daysCompleted, goal.targetDays);
+  const endDate = computeDeadline(goal.startDate, goal.targetDays);
+  const status = goal.status ?? 'active';
+  const isCompleted = status === 'completed' || goal.daysCompleted >= goal.targetDays;
 
   return {
+    userId: goal.user,
     id: goal._id,
     title: goal.title,
     description: goal.description ?? '',
+    category: goal.category ?? 'personal',
     targetDays: goal.targetDays,
     daysCompleted: goal.daysCompleted,
     startDate: goal.startDate,
+    status,
+    progress,
+    isCompleted,
+    completedAt: goal.completedAt ?? null,
+    endDate,
+    deadline: endDate,
+    daysRemaining: computeDaysRemaining(
+      goal.startDate,
+      goal.targetDays,
+      goal.daysCompleted
+    ),
+    isOverdue: isGoalOverdue(
+      goal.startDate,
+      goal.targetDays,
+      goal.daysCompleted,
+      status
+    ),
     streak: goal.streak ?? 0,
     streakHistory: goal.streakHistory ?? [0, 0, 0, 0, 0, 0, 0],
     milestones: (goal.milestones ?? []).map((m) => ({
@@ -24,9 +45,6 @@ export const toPublicGoal = (goal) => {
       completed: m.completed,
       targetDay: m.targetDay,
     })),
-    progress,
-    isCompleted: goal.daysCompleted >= goal.targetDays,
-    endDate: end.toISOString().split('T')[0],
     createdAt: goal.createdAt,
     updatedAt: goal.updatedAt,
   };

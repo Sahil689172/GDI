@@ -41,7 +41,7 @@ export const getAnalytics = async (userId, period = 'weekly') => {
     Workspace.countDocuments({ user: userId }),
   ]);
 
-  const goals = goalsRaw.map(toPublicGoal);
+  const goals = goalsRaw.map(toPublicGoal).filter((g) => g.status !== 'archived');
   const totalTasks = tasks.length;
   const tasksCompleted = tasks.filter((t) => t.completed).length;
   const progressPercentage =

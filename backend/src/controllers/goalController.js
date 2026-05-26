@@ -4,8 +4,18 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export const listGoals = asyncHandler(async (req, res) => {
-  const goals = await goalService.listGoals(req.user._id);
-  sendSuccess(res, { message: 'Goals retrieved', data: { goals }, meta: { count: goals.length } });
+  const goals = await goalService.listGoals(req.user._id, req.query);
+  const analytics = await goalService.getGoalAnalytics(req.user._id);
+  sendSuccess(res, {
+    message: 'Goals retrieved',
+    data: { goals, analytics },
+    meta: { count: goals.length },
+  });
+});
+
+export const getGoalAnalytics = asyncHandler(async (req, res) => {
+  const analytics = await goalService.getGoalAnalytics(req.user._id);
+  sendSuccess(res, { message: 'Goal analytics retrieved', data: { analytics } });
 });
 
 export const createGoal = asyncHandler(async (req, res) => {
@@ -14,7 +24,25 @@ export const createGoal = asyncHandler(async (req, res) => {
 });
 
 export const updateGoal = asyncHandler(async (req, res) => {
-  const goal = await goalService.updateGoal(req.user._id, req.params.id, req.body);
+  const allowed = [
+    'title',
+    'description',
+    'category',
+    'targetDays',
+    'startDate',
+    'status',
+    'daysCompleted',
+    'streak',
+    'streakHistory',
+    'milestones',
+  ];
+  const updates = Object.fromEntries(
+    Object.entries(req.body).filter(([k, v]) => allowed.includes(k) && v !== undefined)
+  );
+  if (!Object.keys(updates).length) {
+    throw ApiError.badRequest('No valid fields to update');
+  }
+  const goal = await goalService.updateGoal(req.user._id, req.params.id, updates);
   sendSuccess(res, { message: 'Goal updated', data: { goal } });
 });
 

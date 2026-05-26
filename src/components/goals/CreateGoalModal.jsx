@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, X, Plus, Trash2 } from 'lucide-react';
+import { GOAL_CATEGORIES } from '../../utils/goalProgress';
 
 const emptyMilestone = () => ({ title: '', targetDay: '' });
 
@@ -9,6 +10,7 @@ export const CreateGoalModal = ({ open, onClose, onSave, editGoal = null }) => {
   const [description, setDescription] = useState('');
   const [targetDays, setTargetDays] = useState(30);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState('personal');
   const [milestones, setMilestones] = useState([emptyMilestone()]);
 
   useEffect(() => {
@@ -17,6 +19,7 @@ export const CreateGoalModal = ({ open, onClose, onSave, editGoal = null }) => {
       setDescription(editGoal.description || '');
       setTargetDays(editGoal.targetDays);
       setStartDate(editGoal.startDate);
+      setCategory(editGoal.category || 'personal');
       setMilestones(
         editGoal.milestones.length
           ? editGoal.milestones.map((m) => ({
@@ -30,6 +33,7 @@ export const CreateGoalModal = ({ open, onClose, onSave, editGoal = null }) => {
       setDescription('');
       setTargetDays(30);
       setStartDate(new Date().toISOString().split('T')[0]);
+      setCategory('personal');
       setMilestones([emptyMilestone()]);
     }
   }, [open, editGoal]);
@@ -42,6 +46,7 @@ export const CreateGoalModal = ({ open, onClose, onSave, editGoal = null }) => {
       description,
       targetDays,
       startDate,
+      category,
       milestones,
     });
     onClose();
@@ -113,6 +118,23 @@ export const CreateGoalModal = ({ open, onClose, onSave, editGoal = null }) => {
                   placeholder="What does success look like?"
                   className="w-full input-field rounded-xl px-4 py-2.5 text-xs font-sans resize-none"
                 />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono text-muted uppercase tracking-widest mb-1.5 block">
+                  Category
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full input-field rounded-xl px-4 py-2.5 text-sm font-sans"
+                >
+                  {GOAL_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-background">
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

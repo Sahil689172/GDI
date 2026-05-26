@@ -1,8 +1,17 @@
 import { api, getResponseData } from '../api/client.js';
 
-export const fetchGoals = async () => {
-  const res = await api.get('/goals');
-  return getResponseData(res).goals ?? [];
+export const fetchGoals = async (params = {}) => {
+  const res = await api.get('/goals', { params });
+  const data = getResponseData(res);
+  return {
+    goals: data.goals ?? [],
+    analytics: data.analytics ?? null,
+  };
+};
+
+export const fetchGoalAnalytics = async () => {
+  const res = await api.get('/goals/analytics/summary');
+  return getResponseData(res).analytics;
 };
 
 export const createGoal = async (payload) => {
@@ -23,3 +32,5 @@ export const logGoalDay = async (id) => {
   const res = await api.post(`/goals/${id}/log-day`);
   return getResponseData(res).goal;
 };
+
+export const archiveGoal = async (id) => updateGoal(id, { status: 'archived' });
