@@ -6,6 +6,7 @@ import goalRoutes from './goalRoutes.js';
 import focusRoutes from './focusRoutes.js';
 import analyticsRoutes from './analyticsRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
+import syncRoutes from './syncRoutes.js';
 import { getDbHealth } from '../config/db.js';
 
 const router = Router();
@@ -28,5 +29,6 @@ router.use('/goals', goalRoutes);
 router.use('/focus', focusRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/sync', syncRoutes);
 
 export default router;
