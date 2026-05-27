@@ -7,8 +7,10 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
+import { useSync } from './SyncContext';
 import * as tasksApi from '../services/tasksApi.js';
 import { clearLegacyTaskStorage } from '../utils/clearLegacyStorage.js';
+import { cacheGet, cacheSet } from '../utils/offlineCache.js';
 
 const TasksContext = createContext(null);
 
@@ -56,9 +58,27 @@ export const useTasks = () => {
 
 export const TasksProvider = ({ children }) => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isOnline, enqueue, registerIdMapHandler } = useSync();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const CACHE_KEY = 'gdi_cache_workspaces_v1';
+
+  useEffect(() => {
+    return registerIdMapHandler((idMap) => {
+      setWorkspaces((prev) =>
+        prev.map((ws) => ({
+          ...ws,
+          id: idMap[ws.id] || ws.id,
+          tasks: ws.tasks.map((t) => ({
+            ...t,
+            id: idMap[t.id] || t.id,
+          })),
+        }))
+      );
+    });
+  }, [registerIdMapHandler]);
 
   const refreshWorkspaces = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -66,14 +86,17 @@ export const TasksProvider = ({ children }) => {
     setError(null);
     try {
       const data = await tasksApi.fetchWorkspaces();
-      setWorkspaces(data.map(normalizeWorkspace));
+      const normalized = data.map(normalizeWorkspace);
+      setWorkspaces(normalized);
+      cacheSet(CACHE_KEY, normalized);
     } catch (err) {
       setError(err.parsed?.message || 'Failed to load tasks');
-      setWorkspaces([]);
+      const cached = cacheGet(CACHE_KEY, []);
+      setWorkspaces(Array.isArray(cached) ? cached : []);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, CACHE_KEY]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -86,6 +109,12 @@ export const TasksProvider = ({ children }) => {
       clearLegacyTaskStorage();
     }
   }, [isAuthenticated, authLoading, refreshWorkspaces]);
+
+  useEffect(() => {
+    const onPulled = () => refreshWorkspaces();
+    window.addEventListener('gdi:sync:pulled', onPulled);
+    return () => window.removeEventListener('gdi:sync:pulled', onPulled);
+  }, [refreshWorkspaces]);
 
   const allTasks = useMemo(
     () =>
@@ -123,6 +152,24 @@ export const TasksProvider = ({ children }) => {
   const createWorkspace = useCallback(async (name) => {
     const trimmed = name.trim();
     if (!trimmed || !isAuthenticated) return null;
+    if (!isOnline) {
+      const clientId = `tmp_ws_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const optimistic = normalizeWorkspace({
+        id: clientId,
+        name: trimmed,
+        collapsed: false,
+        order: workspaces.length,
+        tasks: [],
+      });
+      setWorkspaces((prev) => [...prev, optimistic]);
+      enqueue({
+        entity: 'workspace',
+        op: 'upsert',
+        clientId,
+        data: { name: trimmed, collapsed: false, order: optimistic.order },
+      });
+      return clientId;
+    }
     try {
       const workspace = await tasksApi.createWorkspace({ name: trimmed, collapsed: false });
       const normalized = normalizeWorkspace(workspace);
@@ -132,12 +179,22 @@ export const TasksProvider = ({ children }) => {
       setError(err.parsed?.message || 'Failed to create workspace');
       return null;
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isOnline, enqueue, workspaces.length]);
 
   const updateWorkspace = useCallback(
     async (workspaceId, name) => {
       const trimmed = name.trim();
       if (!trimmed || !isAuthenticated) return;
+      if (!isOnline) {
+        setWorkspaces((prev) => prev.map((ws) => (ws.id === workspaceId ? { ...ws, name: trimmed } : ws)));
+        enqueue({
+          entity: 'workspace',
+          op: 'upsert',
+          id: workspaceId,
+          data: { name: trimmed },
+        });
+        return;
+      }
       try {
         const workspace = await tasksApi.updateWorkspace(workspaceId, { name: trimmed });
         const normalized = normalizeWorkspace(workspace);
@@ -148,12 +205,17 @@ export const TasksProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to update workspace');
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, isOnline, enqueue]
   );
 
   const deleteWorkspace = useCallback(
     async (workspaceId) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        setWorkspaces((prev) => prev.filter((ws) => ws.id !== workspaceId));
+        enqueue({ entity: 'workspace', op: 'delete', id: workspaceId });
+        return;
+      }
       try {
         await tasksApi.deleteWorkspace(workspaceId);
         setWorkspaces((prev) => prev.filter((ws) => ws.id !== workspaceId));
@@ -161,7 +223,7 @@ export const TasksProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to delete workspace');
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, isOnline, enqueue]
   );
 
   const toggleWorkspaceCollapse = useCallback(
@@ -172,6 +234,15 @@ export const TasksProvider = ({ children }) => {
       setWorkspaces((prev) =>
         prev.map((w) => (w.id === workspaceId ? { ...w, collapsed } : w))
       );
+      if (!isOnline) {
+        enqueue({
+          entity: 'workspace',
+          op: 'upsert',
+          id: workspaceId,
+          data: { collapsed },
+        });
+        return;
+      }
       try {
         await tasksApi.updateWorkspace(workspaceId, { collapsed });
       } catch (err) {
@@ -179,7 +250,7 @@ export const TasksProvider = ({ children }) => {
         refreshWorkspaces();
       }
     },
-    [workspaces, isAuthenticated, refreshWorkspaces]
+    [workspaces, isAuthenticated, refreshWorkspaces, isOnline, enqueue]
   );
 
   const reorderWorkspaces = useCallback(
@@ -210,6 +281,31 @@ export const TasksProvider = ({ children }) => {
     async (workspaceId, title, priority = 'normal') => {
       const trimmed = title.trim();
       if (!trimmed || !isAuthenticated) return;
+      if (!isOnline) {
+        const clientId = `tmp_task_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        const optimisticTask = {
+          id: clientId,
+          title: trimmed,
+          completed: false,
+          priority,
+          order: 0,
+          workspaceId,
+        };
+        setWorkspaces((prev) => upsertTaskInWorkspaces(prev, optimisticTask));
+        enqueue({
+          entity: 'task',
+          op: 'upsert',
+          clientId,
+          data: {
+            workspaceId,
+            title: trimmed,
+            priority,
+            completed: false,
+            order: optimisticTask.order,
+          },
+        });
+        return;
+      }
       try {
         const task = await tasksApi.createTask({
           workspaceId,
@@ -222,7 +318,7 @@ export const TasksProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to add task');
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, isOnline, enqueue]
   );
 
   const addTaskToFirstWorkspace = useCallback(
@@ -243,6 +339,29 @@ export const TasksProvider = ({ children }) => {
   const updateTask = useCallback(
     async (workspaceId, taskId, updates) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        const optimistic = {
+          id: taskId,
+          workspaceId: updates.workspaceId || workspaceId,
+          title: updates.title,
+          completed: updates.completed,
+          priority: updates.priority,
+          order: updates.order,
+        };
+        setWorkspaces((prev) => {
+          let next = upsertTaskInWorkspaces(prev, optimistic);
+          if (updates.workspaceId && String(updates.workspaceId) !== workspaceId) {
+            next = next.map((ws) =>
+              ws.id === workspaceId
+                ? { ...ws, tasks: ws.tasks.filter((t) => t.id !== taskId) }
+                : ws
+            );
+          }
+          return next;
+        });
+        enqueue({ entity: 'task', op: 'upsert', id: taskId, data: updates });
+        return;
+      }
       try {
         const task = await tasksApi.updateTask(taskId, updates);
         setWorkspaces((prev) => {
@@ -261,7 +380,7 @@ export const TasksProvider = ({ children }) => {
         refreshWorkspaces();
       }
     },
-    [isAuthenticated, refreshWorkspaces]
+    [isAuthenticated, refreshWorkspaces, isOnline, enqueue]
   );
 
   const toggleTask = useCallback(
@@ -277,6 +396,17 @@ export const TasksProvider = ({ children }) => {
   const deleteTask = useCallback(
     async (workspaceId, taskId) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        setWorkspaces((prev) =>
+          prev.map((ws) =>
+            ws.id === workspaceId
+              ? { ...ws, tasks: ws.tasks.filter((t) => t.id !== taskId) }
+              : ws
+          )
+        );
+        enqueue({ entity: 'task', op: 'delete', id: taskId });
+        return;
+      }
       try {
         await tasksApi.deleteTask(taskId);
         setWorkspaces((prev) =>
@@ -290,7 +420,7 @@ export const TasksProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to delete task');
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, isOnline, enqueue]
   );
 
   const reorderTasks = useCallback(

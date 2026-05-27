@@ -7,8 +7,10 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
+import { useSync } from './SyncContext';
 import * as goalsApi from '../services/goalsApi.js';
 import { clearLegacyGoalStorage } from '../utils/clearLegacyStorage.js';
+import { cacheGet, cacheSet } from '../utils/offlineCache.js';
 const GoalsContext = createContext(null);
 
 export const useGoals = () => {
@@ -19,10 +21,19 @@ export const useGoals = () => {
 
 export const GoalsProvider = ({ children }) => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isOnline, enqueue, registerIdMapHandler } = useSync();
   const [goals, setGoals] = useState([]);
   const [goalAnalytics, setGoalAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const CACHE_KEY = 'gdi_cache_goals_v1';
+
+  useEffect(() => {
+    return registerIdMapHandler((idMap) => {
+      setGoals((prev) => prev.map((g) => ({ ...g, id: idMap[g.id] || g.id })));
+    });
+  }, [registerIdMapHandler]);
 
   const refreshGoals = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -34,14 +45,16 @@ export const GoalsProvider = ({ children }) => {
       });
       setGoals(data);
       setGoalAnalytics(analytics);
+      cacheSet(CACHE_KEY, { goals: data, analytics });
     } catch (err) {
       setError(err.parsed?.message || 'Failed to load goals');
-      setGoals([]);
-      setGoalAnalytics(null);
+      const cached = cacheGet(CACHE_KEY, null);
+      setGoals(cached?.goals ?? []);
+      setGoalAnalytics(cached?.analytics ?? null);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, CACHE_KEY]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -55,6 +68,12 @@ export const GoalsProvider = ({ children }) => {
       clearLegacyGoalStorage();
     }
   }, [isAuthenticated, authLoading, refreshGoals]);
+
+  useEffect(() => {
+    const onPulled = () => refreshGoals();
+    window.addEventListener('gdi:sync:pulled', onPulled);
+    return () => window.removeEventListener('gdi:sync:pulled', onPulled);
+  }, [refreshGoals]);
 
   const stats = useMemo(() => {
     if (goalAnalytics) {
@@ -119,6 +138,52 @@ export const GoalsProvider = ({ children }) => {
   const createGoal = useCallback(
     async (data) => {
       if (!isAuthenticated) return null;
+      if (!isOnline) {
+        const clientId = `tmp_goal_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        const optimistic = {
+          id: clientId,
+          title: data.title,
+          description: data.description ?? '',
+          category: data.category || 'personal',
+          targetDays: Number(data.targetDays) || 30,
+          daysCompleted: 0,
+          startDate: data.startDate || new Date().toISOString().split('T')[0],
+          status: 'active',
+          progress: 0,
+          isCompleted: false,
+          streak: 0,
+          streakHistory: [0, 0, 0, 0, 0, 0, 0],
+          milestones: (data.milestones || [])
+            .filter((m) => m.title?.trim())
+            .map((m) => ({
+              id: `tmp_ms_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+              title: m.title.trim(),
+              completed: false,
+              targetDay: m.targetDay ? Number(m.targetDay) : null,
+            })),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setGoals((prev) => [optimistic, ...prev]);
+        enqueue({
+          entity: 'goal',
+          op: 'upsert',
+          clientId,
+          data: {
+            title: optimistic.title,
+            description: optimistic.description,
+            category: optimistic.category,
+            targetDays: optimistic.targetDays,
+            startDate: optimistic.startDate,
+            milestones: optimistic.milestones.map((m) => ({
+              title: m.title,
+              completed: m.completed,
+              targetDay: m.targetDay,
+            })),
+          },
+        });
+        return clientId;
+      }
       try {
         const goal = await goalsApi.createGoal({
           title: data.title,
@@ -141,12 +206,17 @@ export const GoalsProvider = ({ children }) => {
         return null;
       }
     },
-    [isAuthenticated, refreshGoals]
+    [isAuthenticated, refreshGoals, isOnline, enqueue]
   );
 
   const updateGoal = useCallback(
     async (id, updates) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates, updatedAt: new Date().toISOString() } : g)));
+        enqueue({ entity: 'goal', op: 'upsert', id, data: updates });
+        return;
+      }
       try {
         const goal = await goalsApi.updateGoal(id, updates);
         setGoals((prev) => prev.map((g) => (g.id === id ? goal : g)));
@@ -156,12 +226,17 @@ export const GoalsProvider = ({ children }) => {
         refreshGoals();
       }
     },
-    [isAuthenticated, refreshGoals]
+    [isAuthenticated, refreshGoals, isOnline, enqueue]
   );
 
   const deleteGoal = useCallback(
     async (id) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        setGoals((prev) => prev.filter((g) => g.id !== id));
+        enqueue({ entity: 'goal', op: 'delete', id });
+        return;
+      }
       try {
         await goalsApi.deleteGoal(id);
         setGoals((prev) => prev.filter((g) => g.id !== id));
@@ -170,7 +245,7 @@ export const GoalsProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to delete goal');
       }
     },
-    [isAuthenticated, refreshGoals]
+    [isAuthenticated, refreshGoals, isOnline, enqueue]
   );
 
   const archiveGoal = useCallback(
@@ -190,6 +265,17 @@ export const GoalsProvider = ({ children }) => {
   const logProgressDay = useCallback(
     async (id) => {
       if (!isAuthenticated) return;
+      if (!isOnline) {
+        setGoals((prev) =>
+          prev.map((g) =>
+            g.id === id
+              ? { ...g, daysCompleted: (g.daysCompleted ?? 0) + 1, updatedAt: new Date().toISOString() }
+              : g
+          )
+        );
+        enqueue({ entity: 'goal', op: 'upsert', id, data: { $op: 'logDay' } });
+        return;
+      }
       try {
         const goal = await goalsApi.logGoalDay(id);
         setGoals((prev) => prev.map((g) => (g.id === id ? goal : g)));
@@ -198,7 +284,7 @@ export const GoalsProvider = ({ children }) => {
         setError(err.parsed?.message || 'Failed to log progress');
       }
     },
-    [isAuthenticated, refreshGoals]
+    [isAuthenticated, refreshGoals, isOnline, enqueue]
   );
 
   const toggleMilestone = useCallback(

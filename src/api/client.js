@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getStoredToken, clearStoredToken } from '../utils/authStorage.js';
 import { parseApiError } from '../utils/parseApiError.js';
+import { getOrCreateDeviceId } from '../utils/deviceId.js';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -14,6 +15,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers['X-Device-Id'] = getOrCreateDeviceId();
   return config;
 });
 

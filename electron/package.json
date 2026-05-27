@@ -1,0 +1,7 @@
+{
+  "name": "gdi-electron",
+  "private": true,
+  "type": "module",
+  "main": "./main.js"
+}
+

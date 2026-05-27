@@ -24,6 +24,12 @@ const NotificationCenter = lazy(() =>
     default: m.NotificationCenter,
   }))
 );
+const OfflineBanner = lazy(() =>
+  import('../components/sync/OfflineBanner').then((m) => ({ default: m.OfflineBanner }))
+);
+const SyncToast = lazy(() =>
+  import('../components/sync/SyncToast').then((m) => ({ default: m.SyncToast }))
+);
 
 const DeferredChrome = memo(function DeferredChrome() {
   return (
@@ -39,6 +45,9 @@ const DeferredChrome = memo(function DeferredChrome() {
       </Suspense>
       <Suspense fallback={null}>
         <NotificationCenter />
+      </Suspense>
+      <Suspense fallback={null}>
+        <SyncToast />
       </Suspense>
     </>
   );
@@ -62,6 +71,9 @@ export const AppLayout = memo(function AppLayout() {
       <div
         className={`mobile-main-column relative z-10 flex w-full min-w-0 flex-col ${desktopPad}`}
       >
+        <Suspense fallback={null}>
+          <OfflineBanner />
+        </Suspense>
         <Topbar />
 
         <main id="main-content" className="w-full min-w-0 max-w-full" tabIndex={-1}>

@@ -1,0 +1,29 @@
+{
+  "appId": "com.gotta-do-it.app",
+  "productName": "Gotta-do-it",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**",
+    "electron/**",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "electron/main.js"
+  },
+  "asar": true,
+  "win": {
+    "target": ["zip"],
+    "icon": "public/favicon.ico"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "icon": "electron/assets/icon.png"
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "icon": "electron/assets/icon.png"
+  }
+}
+

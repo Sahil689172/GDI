@@ -16,6 +16,8 @@ import { useIsMobileLayout } from '../hooks/useMediaQuery';
 import { getPageTitle } from '../routes/navigation';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { NotificationBell } from '../components/notifications/NotificationBell';
+import { SyncButton } from '../components/sync/SyncButton';
+import { InstallPrompt } from '../components/pwa/InstallPrompt';
 import { DURATION, EASE } from '../animations/motion';
 
 const QUICK_ACTIONS = [
@@ -74,7 +76,9 @@ export const Topbar = memo(function Topbar() {
             >
               <Search className="w-4 h-4 text-foreground" />
             </button>
+            <SyncButton className="scale-90" />
             <NotificationBell className="scale-90" />
+            <InstallPrompt />
             <ThemeToggle className="scale-90" />
           </div>
         </div>
@@ -113,7 +117,9 @@ export const Topbar = memo(function Topbar() {
           </div>
           {isMobile && (
             <div className="flex items-center gap-1 shrink-0">
+              <SyncButton className="md:hidden" />
               <NotificationBell className="md:hidden" />
+              <InstallPrompt />
               <ThemeToggle className="scale-90" />
               <button
                 type="button"
@@ -163,7 +169,11 @@ export const Topbar = memo(function Topbar() {
             <span className="text-sm font-mono font-bold text-foreground">{timeStr}</span>
           </div>
           <ThemeToggle className="hidden sm:flex" />
+          <SyncButton className="hidden md:flex" />
           <NotificationBell className="hidden md:flex" />
+          <div className="hidden md:flex">
+            <InstallPrompt />
+          </div>
           <div className="hidden md:flex items-center gap-2 pl-2 border-l border-border">
             <div className="text-right hidden xl:block">
               <span className="text-xs font-medium text-foreground block truncate max-w-[120px]">
