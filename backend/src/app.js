@@ -14,10 +14,20 @@ export const createApp = () => {
   app.set('trust proxy', 1);
 
   app.use(helmet());
+  const isAllowedOrigin = (origin) => {
+    if (!origin) return true;
+    if (env.clientUrls.includes(origin)) return true;
+    // Vite may use 3001+ when 3000 is busy; preview/Electron dev use other localhost ports
+    if (!env.isProd && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return true;
+    }
+    return false;
+  };
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || env.clientUrls.includes(origin)) {
+        if (isAllowedOrigin(origin)) {
           return callback(null, true);
         }
         return callback(new Error('Not allowed by CORS'));
