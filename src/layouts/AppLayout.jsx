@@ -13,8 +13,8 @@ import { useIsMobileLayout } from '../hooks/useMediaQuery';
 const AnimatedBackground = lazy(() =>
   import('../components/AnimatedBackground').then((m) => ({ default: m.AnimatedBackground }))
 );
-const GlobalSearch = lazy(() =>
-  import('../components/GlobalSearch').then((m) => ({ default: m.GlobalSearch }))
+const CommandPalette = lazy(() =>
+  import('../components/command/CommandPalette').then((m) => ({ default: m.CommandPalette }))
 );
 const FloatingActionMenu = lazy(() =>
   import('../components/FloatingActionMenu').then((m) => ({ default: m.FloatingActionMenu }))
@@ -38,7 +38,7 @@ const DeferredChrome = memo(function DeferredChrome() {
         <AnimatedBackground />
       </Suspense>
       <Suspense fallback={null}>
-        <GlobalSearch />
+        <CommandPalette />
       </Suspense>
       <Suspense fallback={null}>
         <FloatingActionMenu />

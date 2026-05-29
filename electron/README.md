@@ -4,7 +4,10 @@ This folder contains the desktop wrapper for **Gotta-do-it**.
 
 ## Dev
 
-- `npm run desktop:dev` starts Vite and Electron (loads `http://localhost:3000`).
+- `npm run desktop:dev` — Vite + Electron (no API; good for UI-only desktop testing).
+- `npm run desktop:all` — API + Vite + Electron (full stack; sync/auth work).
+- `npm run desktop` — waits for `http://localhost:3000`, then opens Electron.
+- `npm run desktop:api` — waits for Vite **and** `GET /api/health`, then opens Electron.
 
 ## Build
 

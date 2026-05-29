@@ -16,13 +16,3 @@ export const useWindowSize = () => {
 
   return size;
 };
-
-export const useIsMobile = () => {
-  const { width } = useWindowSize();
-  return width < 768;
-};
-
-export const useIsTablet = () => {
-  const { width } = useWindowSize();
-  return width >= 768 && width < 1024;
-};

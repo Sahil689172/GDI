@@ -13,7 +13,4 @@ router.post('/start', startSessionRules, validate, focusController.start);
 router.post('/end', endSessionRules, validate, focusController.end);
 router.get('/stats', focusController.getStats);
 
-// Backwards-compatible (older frontend)
-router.get('/sessions', focusController.listSessions);
-
 export default router;

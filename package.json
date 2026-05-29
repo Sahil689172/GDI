@@ -11,8 +11,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "desktop:dev": "concurrently -n web,electron -c cyan,magenta \"npm run dev\" \"npm run desktop\"",
-    "desktop:all": "concurrently -n api,web,electron -c green,cyan,magenta \"npm run dev:api\" \"npm run dev\" \"npm run desktop\"",
-    "desktop": "wait-on http://localhost:3000 http-get://127.0.0.1:5000/api/health && electron .",
+    "desktop:all": "concurrently -n api,web,electron -c green,cyan,magenta \"npm run dev:api\" \"npm run dev\" \"npm run desktop:api\"",
+    "desktop": "wait-on http://localhost:3000 -t 120000 && electron .",
+    "desktop:api": "wait-on http://localhost:3000 http-get://127.0.0.1:5000/api/health -t 120000 && electron .",
     "desktop:build": "npm run build && electron-builder",
     "icons:build": "node scripts/generate-icons.mjs"
   },
